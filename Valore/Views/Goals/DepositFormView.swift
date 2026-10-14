@@ -59,7 +59,7 @@ struct DepositFormView: View {
                         Sticker(text: "Lebih dari yang terkumpul (\(Fmt.rupiah(saved)))", fill: Permen.pinkSoft)
                     } else if let goal {
                         Text("Terkumpul \(Fmt.rupiah(goal.saved)) dari \(Fmt.rupiah(goal.target))")
-                            .font(.nunito(13, .bold))
+                            .font(.jakarta(13, .semibold))
                             .foregroundStyle(Permen.muted)
                     }
                 }

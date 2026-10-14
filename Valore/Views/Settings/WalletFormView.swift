@@ -44,7 +44,7 @@ struct WalletFormView: View {
                     FieldLabel("Saldo awal")
                     RupiahField(amount: $initialBalance)
                     Text("Isi saldo saat dompet ini mulai dicatat di VALORE.")
-                        .font(.nunito(13, .semibold))
+                        .font(.jakarta(13, .medium))
                         .foregroundStyle(Permen.muted)
                 }
                 .brut()

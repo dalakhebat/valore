@@ -12,13 +12,13 @@ struct FieldLabel: View {
 
     var body: some View {
         Text(title.uppercased())
-            .font(.nunito(11, .black, relativeTo: .caption))
+            .font(.jakarta(11, .extraBold, relativeTo: .caption))
             .tracking(0.8)
             .foregroundStyle(Permen.muted)
     }
 }
 
-/// Judul halaman (Bangers) dengan aksi di kanan.
+/// Judul halaman (huruf kapital tebal) dengan aksi di kanan.
 struct ScreenHeader<Trailing: View>: View {
     let title: String
     @ViewBuilder var trailing: Trailing
@@ -26,7 +26,8 @@ struct ScreenHeader<Trailing: View>: View {
     var body: some View {
         HStack(alignment: .center) {
             Text(title.uppercased())
-                .font(.bangers(42))
+                .font(.heading(30))
+                .tracking(-0.2)
                 .foregroundStyle(Permen.ink)
                 .accessibilityAddTraits(.isHeader)
             Spacer()
@@ -35,7 +36,7 @@ struct ScreenHeader<Trailing: View>: View {
     }
 }
 
-/// Judul bagian (Bangers) dengan aksi di kanan.
+/// Judul bagian (huruf kapital tebal) dengan aksi di kanan.
 struct SectionTitle<Trailing: View>: View {
     let title: String
     @ViewBuilder var trailing: Trailing
@@ -43,7 +44,8 @@ struct SectionTitle<Trailing: View>: View {
     var body: some View {
         HStack {
             Text(title.uppercased())
-                .font(.bangers(26, relativeTo: .title2))
+                .font(.heading(20, relativeTo: .title2))
+                .tracking(-0.2)
                 .foregroundStyle(Permen.ink)
                 .accessibilityAddTraits(.isHeader)
             Spacer()
@@ -67,13 +69,14 @@ struct SheetHeader: View {
     var body: some View {
         HStack(alignment: .center) {
             Text(title.uppercased())
-                .font(.bangers(32, relativeTo: .title))
+                .font(.heading(24, relativeTo: .title))
+                .tracking(-0.2)
                 .foregroundStyle(Permen.ink)
                 .accessibilityAddTraits(.isHeader)
             Spacer()
             Button(action: onClose) {
                 Text(closeTitle)
-                    .font(.nunito(15, .extraBold))
+                    .font(.jakarta(15, .bold))
                     .foregroundStyle(Permen.ink)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
@@ -92,7 +95,7 @@ struct InkLink: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.nunito(14, .extraBold))
+                .font(.jakarta(14, .bold))
                 .underline(true, color: Permen.ink)
                 .foregroundStyle(Permen.ink)
         }
@@ -109,7 +112,7 @@ struct Sticker: View {
 
     var body: some View {
         Text(text)
-            .font(.nunito(11, .extraBold, relativeTo: .caption))
+            .font(.jakarta(11, .bold, relativeTo: .caption))
             .foregroundStyle(Permen.ink)
             .padding(.horizontal, 9)
             .padding(.vertical, 4)
@@ -135,7 +138,7 @@ struct FilterChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.nunito(14, .extraBold))
+                .font(.jakarta(14, .bold))
                 .foregroundStyle(Permen.ink)
                 .lineLimit(1)
                 .padding(.horizontal, 14)
@@ -158,7 +161,7 @@ struct BrutSegmented<Option: Hashable>: View {
                 let isSelected = option == selection
                 Button { selection = option } label: {
                     Text(label(option))
-                        .font(.nunito(14, .extraBold))
+                        .font(.jakarta(14, .bold))
                         .foregroundStyle(Permen.ink)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 9)
@@ -193,11 +196,11 @@ struct RupiahField: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text("Rp")
-                .font(.nunito(large ? 22 : 18, .extraBold))
+                .font(.jakarta(large ? 22 : 18, .bold))
                 .foregroundStyle(Permen.muted)
             TextField(prompt, text: text)
                 .keyboardType(.numberPad)
-                .font(.nunito(large ? 46 : 28, .black))
+                .font(.jakarta(large ? 46 : 28, .extraBold))
                 .foregroundStyle(Permen.ink)
                 .fixedSize(horizontal: large, vertical: false)
         }
@@ -221,7 +224,7 @@ struct BrutTextField: View {
 
     var body: some View {
         TextField(prompt, text: $text, axis: axis)
-            .font(.nunito(16, .semibold))
+            .font(.jakarta(16, .medium))
             .foregroundStyle(Permen.ink)
             .focused($focused)
             .padding(.horizontal, 14)
@@ -335,19 +338,20 @@ struct EntryRow: View {
             CategoryIcon(category: entry.category)
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.note.isEmpty ? entry.category.label : entry.note)
-                    .font(.nunito(16, .extraBold))
+                    .font(.jakarta(16, .bold))
                     .foregroundStyle(Permen.ink)
                     .lineLimit(1)
                 if !subtitle.isEmpty {
                     Text(subtitle)
-                        .font(.nunito(12, .semibold, relativeTo: .caption))
+                        .font(.jakarta(12, .medium, relativeTo: .caption))
                         .foregroundStyle(Permen.muted)
                         .lineLimit(1)
                 }
             }
             Spacer(minLength: 8)
             Text(Fmt.rupiah(entry.signedAmount, signed: true))
-                .font(.nunito(16, .black))
+                .font(.jakarta(16, .extraBold))
+                .monospacedDigit()
                 .foregroundStyle(entry.kind == .income ? Permen.jade : Permen.ink)
                 .lineLimit(1)
         }
@@ -387,20 +391,20 @@ struct GoalCard: View {
                     .background(Circle().fill(plan.pace.stickerFill))
                     .overlay(Circle().strokeBorder(Permen.ink, lineWidth: 1.5))
                 Text(goal.name)
-                    .font(.nunito(17, .black))
+                    .font(.jakarta(17, .extraBold))
                     .foregroundStyle(Permen.ink)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
             HStack(alignment: .bottom) {
                 Text(plan.progress, format: .percent.precision(.fractionLength(0)))
-                    .font(.nunito(34, .black))
+                    .font(.jakarta(34, .extraBold))
                     .foregroundStyle(Permen.ink)
                 Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 4) {
                     PaceBadge(pace: plan.pace)
                     Text("\(Fmt.compactRupiah(plan.saved)) / \(Fmt.compactRupiah(plan.target))")
-                        .font(.nunito(13, .bold))
+                        .font(.jakarta(13, .semibold))
                         .foregroundStyle(Permen.muted)
                         .lineLimit(1)
                 }
@@ -448,7 +452,7 @@ struct QuickActionTile: View {
                     .font(.system(size: 20, weight: .bold))
                     .frame(height: 24)
                 Text(title)
-                    .font(.nunito(13, .extraBold))
+                    .font(.jakarta(13, .bold))
             }
             .foregroundStyle(Permen.ink)
             .frame(maxWidth: .infinity)
@@ -476,10 +480,10 @@ struct EmptyCard: View {
                 .background(Circle().fill(Permen.lemon))
                 .overlay(Circle().strokeBorder(Permen.ink, lineWidth: Permen.line))
             Text(title)
-                .font(.nunito(18, .black))
+                .font(.jakarta(18, .extraBold))
                 .foregroundStyle(Permen.ink)
             Text(message)
-                .font(.nunito(14, .semibold))
+                .font(.jakarta(14, .medium))
                 .foregroundStyle(Permen.muted)
                 .multilineTextAlignment(.center)
             if let actionTitle, let action {

@@ -30,7 +30,7 @@ struct RootView: View {
                 .tag(AppTab.summary)
         }
         .tint(Permen.ink)
-        .font(.nunito(17))
+        .font(.jakarta(17))
         .preferredColorScheme(.light)
         .environment(\.locale, Fmt.locale)
         .task { ensureDefaultWallet() }
@@ -48,9 +48,9 @@ struct RootView: View {
     private static func configureUIKitAppearance() {
         let ink = UIColor(red: 0x17 / 255, green: 0x17 / 255, blue: 0x17 / 255, alpha: 1)
         let navigation = UINavigationBar.appearance()
-        navigation.titleTextAttributes = [.font: PermenFont.uiFont(.black, size: 17), .foregroundColor: ink]
-        navigation.largeTitleTextAttributes = [.font: PermenFont.uiFont(.black, size: 34), .foregroundColor: ink]
-        UITabBarItem.appearance().setTitleTextAttributes([.font: PermenFont.uiFont(.extraBold, size: 10)], for: .normal)
+        navigation.titleTextAttributes = [.font: PermenFont.uiFont(.extraBold, size: 17), .foregroundColor: ink]
+        navigation.largeTitleTextAttributes = [.font: PermenFont.uiFont(.extraBold, size: 30), .foregroundColor: ink]
+        UITabBarItem.appearance().setTitleTextAttributes([.font: PermenFont.uiFont(.bold, size: 10)], for: .normal)
     }
 }
 

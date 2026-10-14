@@ -51,17 +51,15 @@ extension Color {
 
 // MARK: - Huruf
 
-/// Bangers untuk judul, Nunito untuk teks dan semua angka (Bangers tidak terbaca untuk data).
+/// Plus Jakarta Sans untuk semua teks: judul ExtraBold huruf kapital, teks & angka di berat lain.
 enum PermenFont {
     enum Weight: String {
-        case regular = "Nunito-Regular"
-        case semibold = "Nunito-SemiBold"
-        case bold = "Nunito-Bold"
-        case extraBold = "Nunito-ExtraBold"
-        case black = "Nunito-Black"
+        case regular = "PlusJakartaSans-Regular"
+        case medium = "PlusJakartaSans-Medium"
+        case semibold = "PlusJakartaSans-SemiBold"
+        case bold = "PlusJakartaSans-Bold"
+        case extraBold = "PlusJakartaSans-ExtraBold"
     }
-
-    static let display = "Bangers-Regular"
 
     /// Didaftarkan saat runtime supaya juga jalan di SwiftUI Preview (tanpa UIAppFonts).
     static let registration: Void = {
@@ -77,14 +75,14 @@ enum PermenFont {
 }
 
 extension Font {
-    static func nunito(_ size: CGFloat, _ weight: PermenFont.Weight = .regular, relativeTo style: TextStyle = .body) -> Font {
+    static func jakarta(_ size: CGFloat, _ weight: PermenFont.Weight = .regular, relativeTo style: TextStyle = .body) -> Font {
         _ = PermenFont.registration
         return .custom(weight.rawValue, size: size, relativeTo: style)
     }
 
-    static func bangers(_ size: CGFloat, relativeTo style: TextStyle = .largeTitle) -> Font {
-        _ = PermenFont.registration
-        return .custom(PermenFont.display, size: size, relativeTo: style)
+    /// Judul halaman & bagian.
+    static func heading(_ size: CGFloat, relativeTo style: TextStyle = .largeTitle) -> Font {
+        jakarta(size, .extraBold, relativeTo: style)
     }
 }
 
@@ -172,7 +170,7 @@ struct BrutButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         PressBody(
             label: configuration.label
-                .font(.nunito(17, .extraBold))
+                .font(.jakarta(17, .bold))
                 .foregroundStyle(Permen.ink)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 13)

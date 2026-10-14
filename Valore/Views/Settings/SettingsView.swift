@@ -41,10 +41,10 @@ struct SettingsView: View {
                                         .background(Circle().fill(Permen.candies[index % Permen.candies.count]))
                                         .overlay(Circle().strokeBorder(Permen.ink, lineWidth: 1.5))
                                     Text(wallet.name)
-                                        .font(.nunito(16, .extraBold))
+                                        .font(.jakarta(16, .bold))
                                     Spacer()
                                     Text(Fmt.rupiah(wallet.balance))
-                                        .font(.nunito(15, .black))
+                                        .font(.jakarta(15, .extraBold))
                                     Image(systemName: "chevron.right")
                                         .font(.system(size: 12, weight: .bold))
                                         .foregroundStyle(Permen.muted)
@@ -89,7 +89,7 @@ struct SettingsView: View {
                     FieldLabel("Versi")
                     Spacer()
                     Text(appVersion)
-                        .font(.nunito(14, .extraBold))
+                        .font(.jakarta(14, .bold))
                         .foregroundStyle(Permen.ink)
                 }
                 .brut(shadow: 0)
@@ -123,7 +123,7 @@ struct SettingsView: View {
 
     private func note(_ text: String) -> some View {
         Text(text)
-            .font(.nunito(13, .semibold))
+            .font(.jakarta(13, .medium))
             .foregroundStyle(Permen.muted)
     }
 

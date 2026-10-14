@@ -100,7 +100,7 @@ struct EntryFormView: View {
                                 .background(Circle().fill(Permen.ink).offset(x: isSelected ? 3 : 0, y: isSelected ? 3 : 0))
                                 .overlay(Circle().strokeBorder(Permen.ink, lineWidth: isSelected ? 3 : 0))
                             Text(option.label)
-                                .font(.nunito(11, isSelected ? .black : .semibold, relativeTo: .caption))
+                                .font(.jakarta(11, isSelected ? .extraBold : .medium, relativeTo: .caption))
                                 .foregroundStyle(Permen.ink)
                                 .multilineTextAlignment(.center)
                                 .lineLimit(2, reservesSpace: true)

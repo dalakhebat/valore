@@ -48,7 +48,7 @@ struct GoalListView: View {
         return VStack(alignment: .leading, spacing: 6) {
             FieldLabel("Total terkumpul")
             Text(Fmt.rupiah(goals.reduce(0) { $0 + $1.saved }))
-                .font(.nunito(34, .black))
+                .font(.jakarta(34, .extraBold))
                 .foregroundStyle(Permen.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)

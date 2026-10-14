@@ -40,7 +40,7 @@ The interface uses **Permen** ("candy"), a pastel neo-brutalist design system:
 - A cream background with faint color glows; cards with 2 pt ink borders and hard 3 pt offset shadows, never blurred.
 - Flat candy colors (cyan, mint, lemon, pink), one color per card. Text and lines are always ink.
 - Everything tappable visibly presses in: it shifts and its shadow shrinks.
-- **Bangers** for headings, **Nunito** for body text and every number.
+- **Plus Jakarta Sans** throughout: ExtraBold capitals for headings, lighter weights for body text, and tabular figures for amounts. It is an open-source typeface by the Indonesian foundry Tokotype.
 - Light appearance only, because candy colors lose their character on dark backgrounds.
 
 Tokens live in `Views/Components/Theme.swift` and reusable pieces in `Views/Components/Components.swift`. Charts are drawn with plain SwiftUI shapes so they can carry the same ink outlines.
@@ -51,7 +51,7 @@ Tokens live in `Views/Components/Theme.swift` and reusable pieces in `Views/Comp
 |---|---|
 | UI | SwiftUI (iOS 17+) |
 | Persistence | SwiftData |
-| Fonts | Bangers and Nunito ([SIL Open Font License 1.1](Valore/Resources/Fonts)) |
+| Font | Plus Jakarta Sans ([SIL Open Font License 1.1](Valore/Resources/Fonts)) |
 | Tests | Swift Testing |
 | Project | [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`project.yml` → `.xcodeproj`) |
 

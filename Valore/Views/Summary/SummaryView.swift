@@ -38,7 +38,7 @@ struct SummaryView: View {
             BrutIconButton(symbol: "chevron.left", label: "Bulan sebelumnya") { shiftMonth(by: -1) }
             Spacer()
             Text(Fmt.month(month))
-                .font(.nunito(18, .black))
+                .font(.jakarta(18, .extraBold))
                 .foregroundStyle(Permen.ink)
             Spacer()
             BrutIconButton(symbol: "chevron.right", label: "Bulan berikutnya") { shiftMonth(by: 1) }
@@ -51,7 +51,7 @@ struct SummaryView: View {
             FieldLabel("Pengeluaran per kategori")
             if summary.expenseByCategory.isEmpty {
                 Text("Belum ada pengeluaran di bulan ini.")
-                    .font(.nunito(14, .semibold))
+                    .font(.jakarta(14, .medium))
                     .foregroundStyle(Permen.muted)
             } else {
                 StackedShareBar(items: summary.expenseByCategory)
@@ -63,15 +63,15 @@ struct SummaryView: View {
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack {
                                     Text(item.category.label)
-                                        .font(.nunito(15, .extraBold))
+                                        .font(.jakarta(15, .bold))
                                     Spacer()
                                     Text(Fmt.rupiah(item.amount))
-                                        .font(.nunito(15, .black))
+                                        .font(.jakarta(15, .extraBold))
                                 }
                                 HStack(spacing: 8) {
                                     BrutProgressBar(progress: item.share, fill: item.category.color, height: 10)
                                     Text(item.share, format: .percent.precision(.fractionLength(0)))
-                                        .font(.nunito(12, .extraBold, relativeTo: .caption))
+                                        .font(.jakarta(12, .bold, relativeTo: .caption))
                                         .foregroundStyle(Permen.muted)
                                         .frame(width: 36, alignment: .trailing)
                                 }
@@ -116,7 +116,7 @@ private struct StatTile: View {
         VStack(alignment: .leading, spacing: 8) {
             FieldLabel(title)
             Text(value)
-                .font(.nunito(18, .black))
+                .font(.jakarta(18, .extraBold))
                 .foregroundStyle(Permen.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
@@ -164,7 +164,7 @@ private struct TrendBars: View {
                     }
                     .frame(maxHeight: .infinity, alignment: .bottom)
                     Text(month.month.formatted(.dateTime.month(.abbreviated).locale(Fmt.locale)))
-                        .font(.nunito(11, .extraBold, relativeTo: .caption))
+                        .font(.jakarta(11, .bold, relativeTo: .caption))
                         .foregroundStyle(Permen.ink)
                 }
                 .frame(maxWidth: .infinity)

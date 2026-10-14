@@ -69,7 +69,7 @@ struct GoalDetailView: View {
                     Image(systemName: goal.symbol)
                         .font(.system(size: 20, weight: .bold))
                     Text(plan.progress, format: .percent.precision(.fractionLength(0)))
-                        .font(.nunito(42, .black))
+                        .font(.jakarta(42, .extraBold))
                 }
                 .foregroundStyle(Permen.ink)
             }
@@ -77,10 +77,10 @@ struct GoalDetailView: View {
             .padding(.top, 6)
 
             Text(Fmt.rupiah(plan.saved))
-                .font(.nunito(26, .black))
+                .font(.jakarta(26, .extraBold))
                 .foregroundStyle(Permen.ink)
             Text("dari \(Fmt.rupiah(plan.target))")
-                .font(.nunito(15, .bold))
+                .font(.jakarta(15, .semibold))
                 .foregroundStyle(Permen.muted)
             PaceBadge(pace: plan.pace)
 
@@ -107,7 +107,7 @@ struct GoalDetailView: View {
 
                 if plan.isOverdue {
                     Text("Tenggat sudah lewat. Ubah tenggatnya supaya rencana dihitung ulang.")
-                        .font(.nunito(14, .semibold))
+                        .font(.jakarta(14, .medium))
                         .foregroundStyle(Permen.pinkText)
                 } else {
                     BrutSegmented(options: SavingCadence.allCases, selection: $cadence) { $0.label }
@@ -117,22 +117,22 @@ struct GoalDetailView: View {
                             FieldLabel("Harus nabung")
                             HStack(alignment: .firstTextBaseline, spacing: 6) {
                                 Text(Fmt.rupiah(perPeriod))
-                                    .font(.nunito(30, .black))
+                                    .font(.jakarta(30, .extraBold))
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.6)
                                 Text(cadence.perLabel)
-                                    .font(.nunito(14, .bold))
+                                    .font(.jakarta(14, .semibold))
                             }
                             .foregroundStyle(Permen.ink)
                             Text("Masih \(periods) \(cadence.unitLabel) lagi sampai tenggat.")
-                                .font(.nunito(12, .semibold, relativeTo: .caption))
+                                .font(.jakarta(12, .medium, relativeTo: .caption))
                                 .foregroundStyle(Permen.muted)
                         }
                         .brut(Permen.lemon, padding: 14, radius: Permen.radiusField, shadow: 0)
                     }
                     if let expected = plan.expectedByNow {
                         Text("Kalau nabung rata dari awal, per hari ini idealnya sudah terkumpul \(Fmt.rupiah(expected)).")
-                            .font(.nunito(13, .semibold))
+                            .font(.jakarta(13, .medium))
                             .foregroundStyle(Permen.muted)
                     }
                 }
@@ -143,7 +143,7 @@ struct GoalDetailView: View {
                     RupiahField(amount: $simulatedMonthly)
                     if let months = plan.monthsToReach(saving: simulatedMonthly), let date = plan.projectedDate(saving: simulatedMonthly) {
                         Text("Tercapai sekitar \(months) bulan lagi, kira-kira \(Fmt.month(date)).")
-                            .font(.nunito(14, .extraBold))
+                            .font(.jakarta(14, .bold))
                             .foregroundStyle(Permen.ink)
                     }
                 }
@@ -158,7 +158,7 @@ struct GoalDetailView: View {
             FieldLabel("Riwayat setoran")
             if deposits.isEmpty {
                 Text("Belum ada setoran.")
-                    .font(.nunito(14, .semibold))
+                    .font(.jakarta(14, .medium))
                     .foregroundStyle(Permen.muted)
             } else {
                 VStack(spacing: 0) {
@@ -167,14 +167,14 @@ struct GoalDetailView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(deposit.note.isEmpty ? (deposit.amount >= 0 ? "Setoran" : "Penarikan") : deposit.note)
-                                    .font(.nunito(15, .extraBold))
+                                    .font(.jakarta(15, .bold))
                                 Text(Fmt.day(deposit.date))
-                                    .font(.nunito(12, .semibold, relativeTo: .caption))
+                                    .font(.jakarta(12, .medium, relativeTo: .caption))
                                     .foregroundStyle(Permen.muted)
                             }
                             Spacer()
                             Text(Fmt.rupiah(deposit.amount, signed: true))
-                                .font(.nunito(15, .black))
+                                .font(.jakarta(15, .extraBold))
                                 .foregroundStyle(deposit.amount >= 0 ? Permen.jade : Permen.pinkText)
                         }
                         .foregroundStyle(Permen.ink)
@@ -191,7 +191,7 @@ struct GoalDetailView: View {
                     }
                 }
                 Text("Tekan lama untuk menghapus setoran.")
-                    .font(.nunito(11, .semibold, relativeTo: .caption))
+                    .font(.jakarta(11, .medium, relativeTo: .caption))
                     .foregroundStyle(Permen.muted)
             }
         }
@@ -201,11 +201,11 @@ struct GoalDetailView: View {
     private func infoRow(_ title: String, _ value: String) -> some View {
         HStack {
             Text(title)
-                .font(.nunito(15, .semibold))
+                .font(.jakarta(15, .medium))
                 .foregroundStyle(Permen.muted)
             Spacer()
             Text(value)
-                .font(.nunito(15, .black))
+                .font(.jakarta(15, .extraBold))
                 .foregroundStyle(Permen.ink)
         }
     }

@@ -49,7 +49,7 @@ struct GoalFormView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Toggle(isOn: $hasDeadline) {
                         Text("Pakai tenggat")
-                            .font(.nunito(16, .extraBold))
+                            .font(.jakarta(16, .bold))
                             .foregroundStyle(Permen.ink)
                     }
                     .tint(Permen.cyan)
@@ -64,7 +64,7 @@ struct GoalFormView: View {
                     Text(hasDeadline
                          ? "VALORE akan menghitung harus nabung berapa per hari, minggu, atau bulan."
                          : "Tanpa tenggat, kamu bisa simulasi kapan target tercapai dari nominal nabung per bulan.")
-                        .font(.nunito(13, .semibold))
+                        .font(.jakarta(13, .medium))
                         .foregroundStyle(Permen.muted)
                 }
                 .brut()

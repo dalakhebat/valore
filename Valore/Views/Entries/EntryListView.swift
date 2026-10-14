@@ -41,7 +41,7 @@ struct EntryListView: View {
                                     FieldLabel(Fmt.day(group.day))
                                     Spacer()
                                     Text(Fmt.rupiah(group.net, signed: true))
-                                        .font(.nunito(13, .black))
+                                        .font(.jakarta(13, .extraBold))
                                         .foregroundStyle(group.net > 0 ? Permen.jade : Permen.ink)
                                 }
                                 VStack(spacing: 0) {
@@ -86,7 +86,7 @@ struct EntryListView: View {
                 .font(.system(size: 15, weight: .bold))
                 .foregroundStyle(Permen.ink)
             TextField("Cari catatan, kategori, dompet", text: $search)
-                .font(.nunito(16, .semibold))
+                .font(.jakarta(16, .medium))
                 .foregroundStyle(Permen.ink)
                 .submitLabel(.search)
             if !search.isEmpty {

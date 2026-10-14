@@ -50,7 +50,7 @@ struct HomeView: View {
     private var header: some View {
         HStack(spacing: 12) {
             Text(initial)
-                .font(.bangers(24, relativeTo: .title2))
+                .font(.heading(19, relativeTo: .title2))
                 .foregroundStyle(Permen.ink)
                 .frame(width: 48, height: 48)
                 .background(Circle().fill(Permen.pinkSoft))
@@ -59,7 +59,8 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 0) {
                 FieldLabel(Fmt.greeting(at: .now))
                 Text((displayName.isEmpty ? "VALORE" : displayName).uppercased())
-                    .font(.bangers(30, relativeTo: .title))
+                    .font(.heading(22, relativeTo: .title))
+                    .tracking(-0.2)
                     .foregroundStyle(Permen.ink)
                     .lineLimit(1)
             }
@@ -181,7 +182,7 @@ private struct BalanceCard: View {
                 Sticker(text: "\(walletCount) dompet")
             }
             Text(Fmt.rupiah(total))
-                .font(.nunito(38, .black))
+                .font(.jakarta(38, .extraBold))
                 .foregroundStyle(Permen.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
@@ -203,10 +204,10 @@ private struct BalanceCard: View {
                 .overlay(Circle().strokeBorder(Permen.ink, lineWidth: 1.5))
             VStack(alignment: .leading, spacing: 0) {
                 Text(title)
-                    .font(.nunito(11, .bold, relativeTo: .caption))
+                    .font(.jakarta(11, .semibold, relativeTo: .caption))
                     .foregroundStyle(Permen.muted)
                 Text(Fmt.compactRupiah(amount))
-                    .font(.nunito(16, .black))
+                    .font(.jakarta(16, .extraBold))
                     .foregroundStyle(Permen.ink)
                     .lineLimit(1)
             }
@@ -229,10 +230,10 @@ private struct WalletTile: View {
                 .overlay(Circle().strokeBorder(Permen.ink, lineWidth: 1.5))
             VStack(alignment: .leading, spacing: 0) {
                 Text(wallet.name)
-                    .font(.nunito(14, .bold))
+                    .font(.jakarta(14, .semibold))
                     .lineLimit(1)
                 Text(Fmt.rupiah(wallet.balance))
-                    .font(.nunito(18, .black))
+                    .font(.jakarta(18, .extraBold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
             }
