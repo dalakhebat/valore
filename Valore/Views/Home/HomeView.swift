@@ -23,7 +23,7 @@ struct HomeView: View {
 
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 26) {
+                VStack(alignment: .leading, spacing: 24) {
                     header
                     BalanceCard(total: wallets.reduce(0) { $0 + $1.balance }, walletCount: wallets.count, month: thisMonth)
                     quickActions
@@ -33,9 +33,9 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
-                .padding(.bottom, 28)
+                .padding(.bottom, 32)
             }
-            .background(Palette.background)
+            .background(PermenBackground())
             .toolbar(.hidden, for: .navigationBar)
             .sheet(item: $newEntryKind) { kind in EntryFormView(kind: kind) }
             .sheet(item: $editingEntry) { entry in EntryFormView(entry: entry) }
@@ -50,20 +50,21 @@ struct HomeView: View {
     private var header: some View {
         HStack(spacing: 12) {
             Text(initial)
-                .font(.headline)
-                .foregroundStyle(Palette.ink)
-                .frame(width: 44, height: 44)
-                .background(Palette.peach, in: Circle())
+                .font(.bangers(24, relativeTo: .title2))
+                .foregroundStyle(Permen.ink)
+                .frame(width: 48, height: 48)
+                .background(Circle().fill(Permen.pinkSoft))
+                .overlay(Circle().strokeBorder(Permen.ink, lineWidth: Permen.line))
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(Fmt.greeting(at: .now))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text(displayName.isEmpty ? "VALORE" : displayName)
-                    .font(.title3.weight(.bold))
+            VStack(alignment: .leading, spacing: 0) {
+                FieldLabel(Fmt.greeting(at: .now))
+                Text((displayName.isEmpty ? "VALORE" : displayName).uppercased())
+                    .font(.bangers(30, relativeTo: .title))
+                    .foregroundStyle(Permen.ink)
+                    .lineLimit(1)
             }
             Spacer()
-            CircleIconButton(symbol: "gearshape", label: "Pengaturan") { showingSettings = true }
+            BrutIconButton(symbol: "gearshape.fill", label: "Pengaturan") { showingSettings = true }
         }
     }
 
@@ -72,17 +73,17 @@ struct HomeView: View {
     }
 
     private var quickActions: some View {
-        HStack(alignment: .top, spacing: 8) {
-            QuickActionButton(title: "Keluar", symbol: "arrow.up.right", tint: Palette.peach, accessibilityText: "Catat pengeluaran") {
+        HStack(spacing: 10) {
+            QuickActionTile(title: "Keluar", symbol: "arrow.up.right", fill: Permen.pinkSoft, accessibilityText: "Catat pengeluaran") {
                 newEntryKind = .expense
             }
-            QuickActionButton(title: "Masuk", symbol: "arrow.down.left", tint: Palette.green, accessibilityText: "Catat pemasukan") {
+            QuickActionTile(title: "Masuk", symbol: "arrow.down.left", fill: Permen.mint, accessibilityText: "Catat pemasukan") {
                 newEntryKind = .income
             }
-            QuickActionButton(title: "Setor", symbol: "tray.and.arrow.down", tint: Palette.sky, accessibilityText: "Setor ke target") {
+            QuickActionTile(title: "Setor", symbol: "tray.and.arrow.down.fill", fill: Permen.cyanSoft, accessibilityText: "Setor ke target") {
                 if goals.isEmpty { showingNewGoal = true } else { showingDeposit = true }
             }
-            QuickActionButton(title: "Target", symbol: "target", tint: Palette.yellow, accessibilityText: "Bikin target") {
+            QuickActionTile(title: "Target", symbol: "target", fill: Permen.lemon, accessibilityText: "Bikin target") {
                 showingNewGoal = true
             }
         }
@@ -91,22 +92,14 @@ struct HomeView: View {
     private var walletSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionTitle(title: "Dompet") {
-                Button { showingNewWallet = true } label: {
-                    Image(systemName: "plus")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(Palette.ink)
-                        .frame(width: 32, height: 32)
-                        .background(Palette.card, in: Circle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Tambah dompet")
+                BrutIconButton(symbol: "plus", label: "Tambah dompet", size: 34) { showingNewWallet = true }
             }
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
                 ForEach(Array(wallets.enumerated()), id: \.element.id) { index, wallet in
                     Button { editingWallet = wallet } label: {
-                        WalletTile(wallet: wallet, tint: Palette.pastels[index % Palette.pastels.count])
+                        WalletTile(wallet: wallet)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(BrutPressStyle(fill: Permen.candies[index % Permen.candies.count], radius: Permen.radiusCard))
                 }
             }
         }
@@ -116,44 +109,32 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 12) {
             SectionTitle(title: "Target tabungan") {
                 if !goals.isEmpty {
-                    Button("Lihat semua") { selectedTab = .goals }
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
+                    InkLink(title: "Lihat semua") { selectedTab = .goals }
                 }
             }
             if shown.isEmpty {
-                Button { showingNewGoal = true } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "plus")
-                            .font(.headline)
-                            .frame(width: 40, height: 40)
-                            .background(Palette.yellow, in: Circle())
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Bikin target pertama")
-                                .font(.headline)
-                            Text("Nanti dihitung harus nabung berapa per bulan.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .foregroundStyle(Color.primary)
-                    .card()
-                }
-                .buttonStyle(.plain)
+                EmptyCard(
+                    symbol: "target",
+                    title: "Belum ada target",
+                    message: "Bikin target, nanti dihitung harus nabung berapa per bulan.",
+                    actionTitle: "Bikin target",
+                    action: { showingNewGoal = true }
+                )
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 14) {
                         ForEach(shown) { goal in
                             NavigationLink {
                                 GoalDetailView(goal: goal)
                             } label: {
-                                GoalCard(goal: goal, compact: true)
-                                    .frame(width: 236)
+                                GoalCard(goal: goal)
+                                    .frame(width: 260)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(BrutPressStyle(fill: Permen.surface, radius: Permen.radiusCard))
                         }
                     }
                     .padding(.horizontal, 20)
+                    .padding(.bottom, 4)
                 }
                 .padding(.horizontal, -20)
             }
@@ -164,31 +145,25 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 12) {
             SectionTitle(title: "Transaksi terbaru") {
                 if !entries.isEmpty {
-                    Button("Lihat semua") { selectedTab = .entries }
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
+                    InkLink(title: "Lihat semua") { selectedTab = .entries }
                 }
             }
-            VStack(spacing: 0) {
-                if entries.isEmpty {
-                    Text("Belum ada transaksi. Mulai dari tombol Keluar atau Masuk di atas.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, 6)
-                }
-                ForEach(Array(entries.prefix(5).enumerated()), id: \.element.id) { index, entry in
-                    if index > 0 {
-                        Divider().padding(.leading, 52)
+            if entries.isEmpty {
+                EmptyCard(symbol: "tray", title: "Belum ada transaksi", message: "Mulai dari tombol Keluar atau Masuk di atas.")
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(entries.prefix(5).enumerated()), id: \.element.id) { index, entry in
+                        if index > 0 { InkDivider() }
+                        Button { editingEntry = entry } label: {
+                            EntryRow(entry: entry, showsDate: true)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    Button { editingEntry = entry } label: {
-                        EntryRow(entry: entry, showsDate: true)
-                            .padding(.vertical, 10)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
                 }
+                .background(BrutShape())
             }
-            .card(padding: 16)
         }
     }
 }
@@ -199,78 +174,72 @@ private struct BalanceCard: View {
     let month: MonthSummary
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("Total saldo")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
+                FieldLabel("Total saldo")
                 Spacer()
-                Text("\(walletCount) dompet")
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Palette.card.opacity(0.7), in: Capsule())
+                Sticker(text: "\(walletCount) dompet")
             }
             Text(Fmt.rupiah(total))
-                .font(.system(size: 36, weight: .bold))
-                .monospacedDigit()
+                .font(.nunito(38, .black))
+                .foregroundStyle(Permen.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
             HStack(spacing: 10) {
-                flow("Masuk bulan ini", month.income, symbol: "arrow.down.left", color: Palette.positive)
-                flow("Keluar bulan ini", month.expense, symbol: "arrow.up.right", color: Palette.coral)
+                flow("Masuk bulan ini", month.income, symbol: "arrow.down.left", fill: Permen.mint)
+                flow("Keluar bulan ini", month.expense, symbol: "arrow.up.right", fill: Permen.pinkSoft)
             }
         }
-        .card(Palette.sky, padding: 20)
+        .brut(Permen.lemon, padding: 18)
     }
 
-    private func flow(_ title: String, _ amount: Int, symbol: String, color: Color) -> some View {
+    private func flow(_ title: String, _ amount: Int, symbol: String, fill: Color) -> some View {
         HStack(spacing: 10) {
             Image(systemName: symbol)
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(color)
+                .font(.system(size: 12, weight: .black))
+                .foregroundStyle(Permen.ink)
                 .frame(width: 28, height: 28)
-                .background(color.opacity(0.15), in: Circle())
-            VStack(alignment: .leading, spacing: 1) {
+                .background(Circle().fill(fill))
+                .overlay(Circle().strokeBorder(Permen.ink, lineWidth: 1.5))
+            VStack(alignment: .leading, spacing: 0) {
                 Text(title)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.nunito(11, .bold, relativeTo: .caption))
+                    .foregroundStyle(Permen.muted)
                 Text(Fmt.compactRupiah(amount))
-                    .font(.subheadline.weight(.bold))
-                    .monospacedDigit()
+                    .font(.nunito(16, .black))
+                    .foregroundStyle(Permen.ink)
                     .lineLimit(1)
             }
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.card.opacity(0.75), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(BrutShape(fill: Permen.surface, radius: Permen.radiusField, shadow: 0))
     }
 }
 
 private struct WalletTile: View {
     let wallet: Wallet
-    let tint: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 14) {
             Image(systemName: wallet.symbol)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Palette.ink)
+                .font(.system(size: 15, weight: .bold))
                 .frame(width: 36, height: 36)
-                .background(Palette.card.opacity(0.75), in: Circle())
-            VStack(alignment: .leading, spacing: 2) {
+                .background(Circle().fill(Permen.surface))
+                .overlay(Circle().strokeBorder(Permen.ink, lineWidth: 1.5))
+            VStack(alignment: .leading, spacing: 0) {
                 Text(wallet.name)
-                    .font(.subheadline.weight(.medium))
+                    .font(.nunito(14, .bold))
                     .lineLimit(1)
                 Text(Fmt.rupiah(wallet.balance))
-                    .font(.headline)
-                    .monospacedDigit()
+                    .font(.nunito(18, .black))
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
             }
         }
-        .foregroundStyle(Color.primary)
-        .card(tint, padding: 16, radius: 22)
+        .foregroundStyle(Permen.ink)
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

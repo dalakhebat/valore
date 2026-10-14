@@ -1,5 +1,188 @@
 import SwiftUI
 
+// MARK: - Teks
+
+/// Label huruf besar kecil di atas isian/bagian (11pt, tebal, renggang).
+struct FieldLabel: View {
+    let title: String
+
+    init(_ title: String) {
+        self.title = title
+    }
+
+    var body: some View {
+        Text(title.uppercased())
+            .font(.nunito(11, .black, relativeTo: .caption))
+            .tracking(0.8)
+            .foregroundStyle(Permen.muted)
+    }
+}
+
+/// Judul halaman (Bangers) dengan aksi di kanan.
+struct ScreenHeader<Trailing: View>: View {
+    let title: String
+    @ViewBuilder var trailing: Trailing
+
+    var body: some View {
+        HStack(alignment: .center) {
+            Text(title.uppercased())
+                .font(.bangers(42))
+                .foregroundStyle(Permen.ink)
+                .accessibilityAddTraits(.isHeader)
+            Spacer()
+            trailing
+        }
+    }
+}
+
+/// Judul bagian (Bangers) dengan aksi di kanan.
+struct SectionTitle<Trailing: View>: View {
+    let title: String
+    @ViewBuilder var trailing: Trailing
+
+    var body: some View {
+        HStack {
+            Text(title.uppercased())
+                .font(.bangers(26, relativeTo: .title2))
+                .foregroundStyle(Permen.ink)
+                .accessibilityAddTraits(.isHeader)
+            Spacer()
+            trailing
+        }
+    }
+}
+
+extension SectionTitle where Trailing == EmptyView {
+    init(_ title: String) {
+        self.init(title: title) { EmptyView() }
+    }
+}
+
+/// Kepala lembar (sheet): judul + tombol tutup.
+struct SheetHeader: View {
+    let title: String
+    var closeTitle = "Batal"
+    let onClose: () -> Void
+
+    var body: some View {
+        HStack(alignment: .center) {
+            Text(title.uppercased())
+                .font(.bangers(32, relativeTo: .title))
+                .foregroundStyle(Permen.ink)
+                .accessibilityAddTraits(.isHeader)
+            Spacer()
+            Button(action: onClose) {
+                Text(closeTitle)
+                    .font(.nunito(15, .extraBold))
+                    .foregroundStyle(Permen.ink)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+            }
+            .buttonStyle(BrutPressStyle(fill: Permen.surface, radius: 999, shadow: 2))
+        }
+        .padding(.top, 8)
+    }
+}
+
+/// Link teks bergaris bawah.
+struct InkLink: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.nunito(14, .extraBold))
+                .underline(true, color: Permen.ink)
+                .foregroundStyle(Permen.ink)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Stiker & chip
+
+/// Label kecil berbentuk pil dengan garis tinta.
+struct Sticker: View {
+    let text: String
+    var fill: Color = Permen.surface
+
+    var body: some View {
+        Text(text)
+            .font(.nunito(11, .extraBold, relativeTo: .caption))
+            .foregroundStyle(Permen.ink)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 4)
+            .background(Capsule().fill(fill))
+            .overlay(Capsule().strokeBorder(Permen.ink, lineWidth: 1.5))
+            .fixedSize()
+    }
+}
+
+struct PaceBadge: View {
+    let pace: GoalPace
+
+    var body: some View {
+        Sticker(text: pace.label, fill: pace.stickerFill)
+    }
+}
+
+struct FilterChip: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.nunito(14, .extraBold))
+                .foregroundStyle(Permen.ink)
+                .lineLimit(1)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+        }
+        .buttonStyle(BrutPressStyle(fill: isSelected ? Permen.cyan : Permen.surface, radius: 999, shadow: isSelected ? 2 : 0))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+/// Pilihan 2–3 opsi ala tab, versi brutal.
+struct BrutSegmented<Option: Hashable>: View {
+    let options: [Option]
+    @Binding var selection: Option
+    let label: (Option) -> String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(options, id: \.self) { option in
+                let isSelected = option == selection
+                Button { selection = option } label: {
+                    Text(label(option))
+                        .font(.nunito(14, .extraBold))
+                        .foregroundStyle(Permen.ink)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 9)
+                        .background(
+                            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                .fill(isSelected ? Permen.lemon : Color.clear)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                .strokeBorder(Permen.ink, lineWidth: isSelected ? 1.5 : 0)
+                        )
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(5)
+        .background(BrutShape(fill: Permen.surface, radius: Permen.radiusField, shadow: 0))
+    }
+}
+
+// MARK: - Input
+
 /// Input nominal rupiah dengan pemisah ribuan otomatis.
 struct RupiahField: View {
     @Binding var amount: Int
@@ -10,12 +193,12 @@ struct RupiahField: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text("Rp")
-                .font(large ? .title2.weight(.semibold) : .title3.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .font(.nunito(large ? 22 : 18, .extraBold))
+                .foregroundStyle(Permen.muted)
             TextField(prompt, text: text)
                 .keyboardType(.numberPad)
-                .font(.system(size: large ? 44 : 28, weight: .bold))
-                .monospacedDigit()
+                .font(.nunito(large ? 46 : 28, .black))
+                .foregroundStyle(Permen.ink)
                 .fixedSize(horizontal: large, vertical: false)
         }
         .frame(maxWidth: .infinity, alignment: large ? .center : .leading)
@@ -29,70 +212,59 @@ struct RupiahField: View {
     }
 }
 
-struct CategoryIcon: View {
-    let category: EntryCategory
-    var size: CGFloat = 40
+/// Isian teks bergaris tinta; saat fokus muncul bayangan cyan.
+struct BrutTextField: View {
+    let prompt: String
+    @Binding var text: String
+    var axis: Axis = .horizontal
+    @FocusState private var focused: Bool
 
     var body: some View {
-        Image(systemName: category.symbol)
-            .font(.system(size: size * 0.4, weight: .semibold))
-            .foregroundStyle(category.color)
-            .frame(width: size, height: size)
-            .background(category.color.opacity(0.16), in: Circle())
-    }
-}
-
-struct EntryRow: View {
-    let entry: LedgerEntry
-    var showsDate = false
-
-    var body: some View {
-        HStack(spacing: 12) {
-            CategoryIcon(category: entry.category)
-            // Warna eksplisit: di dalam Button (daftar transaksi) teks bawaan ikut warna tint.
-            VStack(alignment: .leading, spacing: 2) {
-                Text(entry.note.isEmpty ? entry.category.label : entry.note)
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(Color.primary)
-                    .lineLimit(1)
-                if !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(Color.secondary)
-                        .lineLimit(1)
+        TextField(prompt, text: $text, axis: axis)
+            .font(.nunito(16, .semibold))
+            .foregroundStyle(Permen.ink)
+            .focused($focused)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                ZStack {
+                    let shape = RoundedRectangle(cornerRadius: Permen.radiusField, style: .continuous)
+                    if focused { shape.fill(Permen.cyan).offset(x: 3, y: 3) }
+                    shape.fill(Permen.surface)
+                    shape.strokeBorder(Permen.ink, lineWidth: Permen.line)
                 }
-            }
-            Spacer(minLength: 8)
-            Text(Fmt.rupiah(entry.signedAmount, signed: true))
-                .font(.callout.weight(.bold))
-                .monospacedDigit()
-                .foregroundStyle(entry.kind == .income ? Palette.positive : Color.primary)
-        }
-    }
-
-    private var subtitle: String {
-        var parts: [String] = []
-        if showsDate { parts.append(Fmt.shortDay(entry.date)) }
-        if !entry.note.isEmpty { parts.append(entry.category.label) }
-        if let wallet = entry.wallet { parts.append(wallet.name) }
-        return parts.joined(separator: " · ")
+            )
     }
 }
 
-struct PaceBadge: View {
-    let pace: GoalPace
+// MARK: - Progres
+
+struct BrutProgressBar: View {
+    let progress: Double
+    var fill: Color = Permen.cyan
+    var height: CGFloat = 14
 
     var body: some View {
-        Text(pace.label)
-            .font(.caption2.weight(.semibold))
-            .padding(.horizontal, 9)
-            .padding(.vertical, 4)
-            .foregroundStyle(pace.color)
-            .background(pace.color.opacity(0.16), in: Capsule())
+        GeometryReader { proxy in
+            let clamped = min(max(progress, 0), 1)
+            ZStack(alignment: .leading) {
+                Capsule().fill(Permen.surface)
+                if clamped > 0 {
+                    Capsule()
+                        .fill(fill)
+                        .frame(width: max(proxy.size.width * clamped, height))
+                        .overlay(Capsule().strokeBorder(Permen.ink, lineWidth: 1.5))
+                }
+                Capsule().strokeBorder(Permen.ink, lineWidth: Permen.line)
+            }
+        }
+        .frame(height: height)
+        .accessibilityElement()
+        .accessibilityValue(Text(progress, format: .percent.precision(.fractionLength(0))))
     }
 }
 
-/// Busur setengah lingkaran (kiri → atas → kanan), dipakai untuk gauge progres.
+/// Busur setengah lingkaran (kiri → atas → kanan).
 struct SemicircleArc: Shape {
     var progress: Double
     var lineWidth: CGFloat
@@ -113,158 +285,211 @@ struct SemicircleArc: Shape {
     }
 }
 
+/// Gauge setengah lingkaran bergaris tinta.
 struct HalfGauge<Content: View>: View {
     let progress: Double
-    var color: Color
-    var lineWidth: CGFloat = 12
+    var fill: Color
+    var lineWidth: CGFloat = 18
     @ViewBuilder var content: Content
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            SemicircleArc(progress: 1, lineWidth: lineWidth)
-                .stroke(color.opacity(0.18), style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-            SemicircleArc(progress: progress, lineWidth: lineWidth)
-                .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-                .animation(.easeOut, value: progress)
+            // Garis luar tinta, lalu jalur krem, lalu isi progres.
+            SemicircleArc(progress: 1, lineWidth: lineWidth + 4)
+                .stroke(Permen.ink, style: StrokeStyle(lineWidth: lineWidth + 4, lineCap: .round))
+            SemicircleArc(progress: 1, lineWidth: lineWidth + 4)
+                .stroke(Permen.surface, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+            if progress > 0 {
+                SemicircleArc(progress: progress, lineWidth: lineWidth + 4)
+                    .stroke(fill, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    .animation(.easeOut, value: progress)
+            }
             content
         }
         .aspectRatio(2, contentMode: .fit)
     }
 }
 
-extension HalfGauge where Content == EmptyView {
-    init(progress: Double, color: Color, lineWidth: CGFloat = 12) {
-        self.init(progress: progress, color: color, lineWidth: lineWidth) { EmptyView() }
+// MARK: - Baris & kartu data
+
+struct CategoryIcon: View {
+    let category: EntryCategory
+    var size: CGFloat = 40
+
+    var body: some View {
+        Image(systemName: category.symbol)
+            .font(.system(size: size * 0.38, weight: .bold))
+            .foregroundStyle(Permen.ink)
+            .frame(width: size, height: size)
+            .background(Circle().fill(category.color))
+            .overlay(Circle().strokeBorder(Permen.ink, lineWidth: 1.5))
     }
 }
 
-/// Kartu target tabungan: persentase besar + gauge setengah lingkaran.
+struct EntryRow: View {
+    let entry: LedgerEntry
+    var showsDate = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            CategoryIcon(category: entry.category)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.note.isEmpty ? entry.category.label : entry.note)
+                    .font(.nunito(16, .extraBold))
+                    .foregroundStyle(Permen.ink)
+                    .lineLimit(1)
+                if !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.nunito(12, .semibold, relativeTo: .caption))
+                        .foregroundStyle(Permen.muted)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 8)
+            Text(Fmt.rupiah(entry.signedAmount, signed: true))
+                .font(.nunito(16, .black))
+                .foregroundStyle(entry.kind == .income ? Permen.jade : Permen.ink)
+                .lineLimit(1)
+        }
+        .contentShape(Rectangle())
+    }
+
+    private var subtitle: String {
+        var parts: [String] = []
+        if showsDate { parts.append(Fmt.shortDay(entry.date)) }
+        if !entry.note.isEmpty { parts.append(entry.category.label) }
+        if let wallet = entry.wallet { parts.append(wallet.name) }
+        return parts.joined(separator: " · ")
+    }
+}
+
+/// Garis pemisah tinta di dalam kartu.
+struct InkDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(Permen.ink)
+            .frame(height: 1.5)
+    }
+}
+
+/// Kartu target tabungan: persentase besar + batang progres.
 struct GoalCard: View {
     let goal: SavingGoal
-    /// Versi sempit untuk deretan horizontal di Beranda.
-    var compact = false
 
     var body: some View {
         let plan = goal.plan()
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 Image(systemName: goal.symbol)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(plan.pace.color)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Permen.ink)
                     .frame(width: 34, height: 34)
-                    .background(plan.pace.color.opacity(0.16), in: Circle())
+                    .background(Circle().fill(plan.pace.stickerFill))
+                    .overlay(Circle().strokeBorder(Permen.ink, lineWidth: 1.5))
                 Text(goal.name)
-                    .font(.headline)
-                    .foregroundStyle(Color.primary)
+                    .font(.nunito(17, .black))
+                    .foregroundStyle(Permen.ink)
                     .lineLimit(1)
-                Spacer(minLength: 4)
-                if !compact { PaceBadge(pace: plan.pace) }
+                    .minimumScaleFactor(0.8)
             }
-            HStack(alignment: .bottom, spacing: 8) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(plan.progress, format: .percent.precision(.fractionLength(0)))
-                        .font(.system(size: compact ? 30 : 36, weight: .bold))
-                        .monospacedDigit()
-                        .foregroundStyle(Color.primary)
-                    Text("\(Fmt.compactRupiah(plan.saved)) dari \(Fmt.compactRupiah(plan.target))")
-                        .font(.caption)
-                        .foregroundStyle(Color.secondary)
+            HStack(alignment: .bottom) {
+                Text(plan.progress, format: .percent.precision(.fractionLength(0)))
+                    .font(.nunito(34, .black))
+                    .foregroundStyle(Permen.ink)
+                Spacer(minLength: 8)
+                VStack(alignment: .trailing, spacing: 4) {
+                    PaceBadge(pace: plan.pace)
+                    Text("\(Fmt.compactRupiah(plan.saved)) / \(Fmt.compactRupiah(plan.target))")
+                        .font(.nunito(13, .bold))
+                        .foregroundStyle(Permen.muted)
                         .lineLimit(1)
                 }
-                Spacer(minLength: 4)
-                HalfGauge(progress: plan.progress, color: plan.pace.color, lineWidth: compact ? 9 : 11)
-                    .frame(width: compact ? 72 : 100)
+                .padding(.bottom, 6)
             }
-            if compact { PaceBadge(pace: plan.pace) }
+            BrutProgressBar(progress: plan.progress, fill: plan.pace.barFill)
         }
-        .card()
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
-/// Tombol ikon bulat putih di header.
-struct CircleIconButton: View {
+/// Tombol ikon bulat (garis + bayangan keras).
+struct BrutIconButton: View {
     let symbol: String
     let label: String
+    var fill: Color = Permen.surface
+    var size: CGFloat = 44
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 17, weight: .medium))
-                .foregroundStyle(Palette.ink)
-                .frame(width: 44, height: 44)
-                .background(Palette.card, in: Circle())
+                .font(.system(size: size * 0.38, weight: .bold))
+                .foregroundStyle(Permen.ink)
+                .frame(width: size, height: size)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(BrutPressStyle(fill: fill, radius: size / 2, shadow: 2))
         .accessibilityLabel(label)
     }
 }
 
-struct QuickActionButton: View {
+/// Ubin aksi cepat di Beranda.
+struct QuickActionTile: View {
     let title: String
     let symbol: String
-    let tint: Color
+    let fill: Color
     let accessibilityText: String
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
                 Image(systemName: symbol)
-                    .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(Palette.ink)
-                    .frame(width: 58, height: 58)
-                    .background(tint, in: Circle())
+                    .font(.system(size: 20, weight: .bold))
+                    .frame(height: 24)
                 Text(title)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(Color.primary)
+                    .font(.nunito(13, .extraBold))
             }
+            .foregroundStyle(Permen.ink)
             .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(BrutPressStyle(fill: fill, radius: Permen.radiusCard))
         .accessibilityLabel(accessibilityText)
     }
 }
 
-struct FilterChip: View {
+/// Kartu kosong dengan ajakan.
+struct EmptyCard: View {
+    let symbol: String
     let title: String
-    let isSelected: Bool
-    /// Latar saat tidak dipilih; pakai `Palette.background` kalau chip berada di dalam kartu.
-    var unselectedFill: Color = Palette.card
-    let action: () -> Void
+    let message: String
+    var actionTitle: String?
+    var action: (() -> Void)?
 
     var body: some View {
-        Button(action: action) {
+        VStack(spacing: 12) {
+            Image(systemName: symbol)
+                .font(.system(size: 26, weight: .bold))
+                .foregroundStyle(Permen.ink)
+                .frame(width: 60, height: 60)
+                .background(Circle().fill(Permen.lemon))
+                .overlay(Circle().strokeBorder(Permen.ink, lineWidth: Permen.line))
             Text(title)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(1)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 9)
-                .foregroundStyle(isSelected ? Palette.onInk : Color.primary)
-                .background(isSelected ? Palette.ink : unselectedFill, in: Capsule())
+                .font(.nunito(18, .black))
+                .foregroundStyle(Permen.ink)
+            Text(message)
+                .font(.nunito(14, .semibold))
+                .foregroundStyle(Permen.muted)
+                .multilineTextAlignment(.center)
+            if let actionTitle, let action {
+                Button(actionTitle, action: action)
+                    .buttonStyle(BrutButtonStyle())
+                    .padding(.top, 4)
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-}
-
-struct SectionTitle<Trailing: View>: View {
-    let title: String
-    @ViewBuilder var trailing: Trailing
-
-    var body: some View {
-        HStack {
-            Text(title)
-                .font(.title3.weight(.bold))
-            Spacer()
-            trailing
-        }
-    }
-}
-
-extension SectionTitle where Trailing == EmptyView {
-    init(_ title: String) {
-        self.init(title: title) { EmptyView() }
+        .frame(maxWidth: .infinity)
+        .brut(padding: 24)
     }
 }
 
@@ -274,22 +499,18 @@ struct SymbolPicker: View {
     @Binding var selection: String
 
     var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 12) {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 12) {
             ForEach(symbols, id: \.self) { symbol in
                 let isSelected = symbol == selection
-                Button {
-                    selection = symbol
-                } label: {
+                Button { selection = symbol } label: {
                     Image(systemName: symbol)
-                        .font(.system(size: 17, weight: .medium))
-                        .frame(width: 42, height: 42)
-                        .foregroundStyle(isSelected ? Palette.onInk : Color.primary)
-                        .background(isSelected ? Palette.ink : Palette.background, in: Circle())
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(Permen.ink)
+                        .frame(width: 44, height: 44)
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(BrutPressStyle(fill: isSelected ? Permen.lemon : Permen.surface, radius: 22, shadow: isSelected ? 2 : 0))
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
-        .padding(.vertical, 4)
     }
 }

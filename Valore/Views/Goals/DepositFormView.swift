@@ -30,80 +30,70 @@ struct DepositFormView: View {
         let saved = goal?.saved ?? 0
         let exceedsSaved = direction == .withdraw && amount > saved
 
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 18) {
-                    if !fixedGoal {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Target")
-                                .font(.headline)
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(goals) { option in
-                                        FilterChip(title: option.name, isSelected: option == goal, unselectedFill: Palette.background) {
-                                            goal = option
-                                        }
-                                    }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SheetHeader(title: fixedGoal ? (goal?.name ?? "Setor") : "Setor tabungan") { dismiss() }
+
+                if !fixedGoal {
+                    VStack(alignment: .leading, spacing: 12) {
+                        FieldLabel("Target")
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(goals) { option in
+                                    FilterChip(title: option.name, isSelected: option == goal) { goal = option }
                                 }
                             }
-                        }
-                        .card()
-                    }
-
-                    Picker("Jenis", selection: $direction) {
-                        ForEach(Direction.allCases) { direction in
-                            Text(direction.rawValue).tag(direction)
+                            .padding(.vertical, 2)
+                            .padding(.trailing, 4)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .brut()
+                }
 
-                    VStack(spacing: 8) {
-                        RupiahField(amount: $amount, large: true)
-                        if exceedsSaved {
-                            Text("Lebih besar dari yang sudah terkumpul (\(Fmt.rupiah(saved))).")
-                                .font(.footnote)
-                                .foregroundStyle(Palette.coral)
-                        } else if let goal {
-                            Text("Terkumpul \(Fmt.rupiah(goal.saved)) dari \(Fmt.rupiah(goal.target))")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
+                BrutSegmented(options: Direction.allCases, selection: $direction) { $0.rawValue }
+
+                VStack(spacing: 8) {
+                    FieldLabel("Jumlah")
+                    RupiahField(amount: $amount, large: true)
+                    if exceedsSaved {
+                        Sticker(text: "Lebih dari yang terkumpul (\(Fmt.rupiah(saved)))", fill: Permen.pinkSoft)
+                    } else if let goal {
+                        Text("Terkumpul \(Fmt.rupiah(goal.saved)) dari \(Fmt.rupiah(goal.target))")
+                            .font(.nunito(13, .bold))
+                            .foregroundStyle(Permen.muted)
                     }
-                    .padding(.vertical, 14)
-                    .card()
+                }
+                .frame(maxWidth: .infinity)
+                .brut(padding: 18)
 
-                    VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        FieldLabel("Tanggal")
+                        Spacer()
                         DatePicker("Tanggal", selection: $date, displayedComponents: .date)
-                            .padding(.vertical, 6)
-                        Divider()
-                        TextField("Catatan (opsional)", text: $note)
-                            .padding(.vertical, 12)
+                            .labelsHidden()
                     }
-                    .card(padding: 16)
+                    FieldLabel("Catatan")
+                    BrutTextField(prompt: "Opsional", text: $note)
                 }
-                .padding(20)
+                .brut()
             }
-            .scrollDismissesKeyboard(.interactively)
-            .background(Palette.background)
-            .safeAreaInset(edge: .bottom) {
-                Button("Simpan", action: save)
-                    .buttonStyle(InkButtonStyle(fullWidth: true))
-                    .disabled(goal == nil || amount <= 0 || exceedsSaved)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
-                    .background(Palette.background)
-            }
-            .navigationTitle(fixedGoal ? (goal?.name ?? "") : "Setor tabungan")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Batal") { dismiss() }
-                }
-            }
-            .onAppear {
-                if goal == nil {
-                    goal = goals.first { !$0.plan().isDone } ?? goals.first
-                }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .background(PermenBackground())
+        .safeAreaInset(edge: .bottom) {
+            Button("Simpan", action: save)
+                .buttonStyle(BrutButtonStyle(fullWidth: true))
+                .disabled(goal == nil || amount <= 0 || exceedsSaved)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 8)
+                .background(Permen.bg)
+        }
+        .onAppear {
+            if goal == nil {
+                goal = goals.first { !$0.plan().isDone } ?? goals.first
             }
         }
     }

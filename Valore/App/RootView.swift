@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UIKit
 
 enum AppTab: Hashable {
     case home, entries, goals, summary
@@ -8,6 +9,10 @@ enum AppTab: Hashable {
 struct RootView: View {
     @Environment(\.modelContext) private var context
     @State private var tab = AppTab.home
+
+    init() {
+        Self.configureUIKitAppearance()
+    }
 
     var body: some View {
         TabView(selection: $tab) {
@@ -21,10 +26,12 @@ struct RootView: View {
                 .tabItem { Label("Tabungan", systemImage: "target") }
                 .tag(AppTab.goals)
             SummaryView()
-                .tabItem { Label("Ringkasan", systemImage: "chart.pie.fill") }
+                .tabItem { Label("Ringkasan", systemImage: "chart.bar.fill") }
                 .tag(AppTab.summary)
         }
-        .tint(Palette.ink)
+        .tint(Permen.ink)
+        .font(.nunito(17))
+        .preferredColorScheme(.light)
         .environment(\.locale, Fmt.locale)
         .task { ensureDefaultWallet() }
     }
@@ -35,6 +42,15 @@ struct RootView: View {
         guard count == 0 else { return }
         context.insert(Wallet(name: "Tunai", symbol: "banknote.fill"))
         try? context.save()
+    }
+
+    /// Bagian UIKit yang tidak bisa diatur dari SwiftUI: judul navigasi & label tab bar.
+    private static func configureUIKitAppearance() {
+        let ink = UIColor(red: 0x17 / 255, green: 0x17 / 255, blue: 0x17 / 255, alpha: 1)
+        let navigation = UINavigationBar.appearance()
+        navigation.titleTextAttributes = [.font: PermenFont.uiFont(.black, size: 17), .foregroundColor: ink]
+        navigation.largeTitleTextAttributes = [.font: PermenFont.uiFont(.black, size: 34), .foregroundColor: ink]
+        UITabBarItem.appearance().setTitleTextAttributes([.font: PermenFont.uiFont(.extraBold, size: 10)], for: .normal)
     }
 }
 

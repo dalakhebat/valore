@@ -27,42 +27,60 @@ struct GoalFormView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    TextField("Nama target (mis. Liburan, Dana darurat)", text: $name)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SheetHeader(title: goal == nil ? "Target baru" : "Ubah target") { dismiss() }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    FieldLabel("Nama target")
+                    BrutTextField(prompt: "Mis. Liburan, Dana darurat", text: $name)
+                    FieldLabel("Ikon")
+                        .padding(.top, 4)
                     SymbolPicker(symbols: Self.symbols, selection: $symbol)
                 }
+                .brut()
 
-                Section("Target") {
+                VStack(alignment: .leading, spacing: 8) {
+                    FieldLabel("Target")
                     RupiahField(amount: $target)
                 }
+                .brut()
 
-                Section {
-                    Toggle("Pakai tenggat", isOn: $hasDeadline)
-                    if hasDeadline {
-                        DatePicker("Tenggat", selection: $deadline, in: Date.now..., displayedComponents: .date)
+                VStack(alignment: .leading, spacing: 12) {
+                    Toggle(isOn: $hasDeadline) {
+                        Text("Pakai tenggat")
+                            .font(.nunito(16, .extraBold))
+                            .foregroundStyle(Permen.ink)
                     }
-                } footer: {
+                    .tint(Permen.cyan)
+                    if hasDeadline {
+                        HStack {
+                            FieldLabel("Tenggat")
+                            Spacer()
+                            DatePicker("Tenggat", selection: $deadline, in: Date.now..., displayedComponents: .date)
+                                .labelsHidden()
+                        }
+                    }
                     Text(hasDeadline
                          ? "VALORE akan menghitung harus nabung berapa per hari, minggu, atau bulan."
                          : "Tanpa tenggat, kamu bisa simulasi kapan target tercapai dari nominal nabung per bulan.")
+                        .font(.nunito(13, .semibold))
+                        .foregroundStyle(Permen.muted)
                 }
+                .brut()
             }
-            .scrollDismissesKeyboard(.interactively)
-            .scrollContentBackground(.hidden)
-            .background(Palette.background)
-            .navigationTitle(goal == nil ? "Target baru" : "Ubah target")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Batal") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Simpan", action: save)
-                        .disabled(trimmedName.isEmpty || target <= 0)
-                }
-            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .background(PermenBackground())
+        .safeAreaInset(edge: .bottom) {
+            Button("Simpan", action: save)
+                .buttonStyle(BrutButtonStyle(fullWidth: true))
+                .disabled(trimmedName.isEmpty || target <= 0)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 8)
+                .background(Permen.bg)
         }
     }
 

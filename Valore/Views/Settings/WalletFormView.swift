@@ -27,46 +27,50 @@ struct WalletFormView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    TextField("Nama dompet (mis. BCA, GoPay)", text: $name)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SheetHeader(title: wallet == nil ? "Dompet baru" : "Ubah dompet") { dismiss() }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    FieldLabel("Nama dompet")
+                    BrutTextField(prompt: "Mis. BCA, GoPay", text: $name)
+                    FieldLabel("Ikon")
+                        .padding(.top, 4)
                     SymbolPicker(symbols: Self.symbols, selection: $symbol)
                 }
+                .brut()
 
-                Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    FieldLabel("Saldo awal")
                     RupiahField(amount: $initialBalance)
-                } header: {
-                    Text("Saldo awal")
-                } footer: {
                     Text("Isi saldo saat dompet ini mulai dicatat di VALORE.")
+                        .font(.nunito(13, .semibold))
+                        .foregroundStyle(Permen.muted)
                 }
+                .brut()
 
                 if wallet != nil && canDelete {
-                    Section {
-                        Button("Hapus dompet", role: .destructive) { confirmingDelete = true }
-                    }
+                    Button("Hapus dompet") { confirmingDelete = true }
+                        .buttonStyle(BrutButtonStyle(fill: Permen.pinkSoft, fullWidth: true))
                 }
             }
-            .scrollDismissesKeyboard(.interactively)
-            .scrollContentBackground(.hidden)
-            .background(Palette.background)
-            .navigationTitle(wallet == nil ? "Dompet baru" : "Ubah dompet")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Batal") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Simpan", action: save)
-                        .disabled(trimmedName.isEmpty)
-                }
-            }
-            .confirmationDialog("Hapus dompet \"\(wallet?.name ?? "")\"?", isPresented: $confirmingDelete, titleVisibility: .visible) {
-                Button("Hapus dompet & \(wallet?.entries?.count ?? 0) transaksinya", role: .destructive, action: delete)
-            } message: {
-                Text("Transaksi di dompet ini ikut terhapus dan tidak bisa dikembalikan.")
-            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .background(PermenBackground())
+        .safeAreaInset(edge: .bottom) {
+            Button("Simpan", action: save)
+                .buttonStyle(BrutButtonStyle(fullWidth: true))
+                .disabled(trimmedName.isEmpty)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 8)
+                .background(Permen.bg)
+        }
+        .confirmationDialog("Hapus dompet \"\(wallet?.name ?? "")\"?", isPresented: $confirmingDelete, titleVisibility: .visible) {
+            Button("Hapus dompet & \(wallet?.entries?.count ?? 0) transaksinya", role: .destructive, action: delete)
+        } message: {
+            Text("Transaksi di dompet ini ikut terhapus dan tidak bisa dikembalikan.")
         }
     }
 

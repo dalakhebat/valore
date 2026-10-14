@@ -7,42 +7,38 @@ struct GoalListView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if goals.isEmpty {
-                    ContentUnavailableView {
-                        Label("Belum ada target", systemImage: "target")
-                    } description: {
-                        Text("Bikin target tabungan, nanti VALORE hitung harus nabung berapa per minggu atau per bulan.")
-                    } actions: {
-                        Button("Bikin target") { showingNew = true }
-                            .buttonStyle(InkButtonStyle())
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    ScreenHeader(title: "Tabungan") {
+                        BrutIconButton(symbol: "plus", label: "Bikin target", fill: Permen.cyan) { showingNew = true }
                     }
-                } else {
-                    ScrollView {
-                        VStack(spacing: 14) {
-                            totalCard
-                            ForEach(goals) { goal in
-                                NavigationLink {
-                                    GoalDetailView(goal: goal)
-                                } label: {
-                                    GoalCard(goal: goal)
-                                }
-                                .buttonStyle(.plain)
+
+                    if goals.isEmpty {
+                        EmptyCard(
+                            symbol: "target",
+                            title: "Belum ada target",
+                            message: "Bikin target tabungan, nanti VALORE hitung harus nabung berapa per minggu atau per bulan.",
+                            actionTitle: "Bikin target",
+                            action: { showingNew = true }
+                        )
+                    } else {
+                        totalCard
+                        ForEach(goals) { goal in
+                            NavigationLink {
+                                GoalDetailView(goal: goal)
+                            } label: {
+                                GoalCard(goal: goal)
                             }
+                            .buttonStyle(BrutPressStyle(fill: Permen.surface, radius: Permen.radiusCard))
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 28)
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 32)
             }
-            .background(Palette.background)
-            .navigationTitle("Tabungan")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showingNew = true } label: { Image(systemName: "plus") }
-                        .accessibilityLabel("Bikin target")
-                }
-            }
+            .background(PermenBackground())
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showingNew) { GoalFormView() }
         }
     }
@@ -50,19 +46,18 @@ struct GoalListView: View {
     private var totalCard: some View {
         let reached = goals.filter { $0.plan().isDone }.count
         return VStack(alignment: .leading, spacing: 6) {
-            Text("Total terkumpul")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
+            FieldLabel("Total terkumpul")
             Text(Fmt.rupiah(goals.reduce(0) { $0 + $1.saved }))
-                .font(.system(size: 32, weight: .bold))
-                .monospacedDigit()
+                .font(.nunito(34, .black))
+                .foregroundStyle(Permen.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-            Text("\(goals.count) target · \(reached) tercapai")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                Sticker(text: "\(goals.count) target")
+                Sticker(text: "\(reached) tercapai", fill: reached > 0 ? Permen.lemon : Permen.surface)
+            }
         }
-        .card(Palette.green, padding: 20)
+        .brut(Permen.mint, padding: 18)
     }
 }
 

@@ -15,7 +15,7 @@ final class ScreenshotTests: XCTestCase {
         snap("01-beranda")
 
         app.buttons["Pengaturan"].tap()
-        XCTAssertTrue(app.navigationBars["Pengaturan"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["PENGATURAN"].waitForExistence(timeout: 3))
         snap("08-pengaturan")
         app.buttons["Selesai"].tap()
 
@@ -34,7 +34,7 @@ final class ScreenshotTests: XCTestCase {
 
         // Target yang sama juga tampil di tab Beranda (tersembunyi), jadi ketuk yang terlihat saja.
         tapVisible(app.staticTexts, "Liburan Jepang")
-        XCTAssertTrue(app.staticTexts["Rencana"].waitForExistence(timeout: 3) || app.staticTexts["RENCANA"].exists)
+        XCTAssertTrue(app.staticTexts["RENCANA"].waitForExistence(timeout: 3))
         snap("04-detail-target")
 
         // Tombol setor harus bisa dijangkau (dulu tertutup tab bar).
@@ -50,7 +50,7 @@ final class ScreenshotTests: XCTestCase {
 
         app.tabBars.buttons["Beranda"].tap()
         tapVisible(app.buttons, "Catat pengeluaran")
-        XCTAssertTrue(app.navigationBars["Catat transaksi"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["CATAT TRANSAKSI"].waitForExistence(timeout: 3))
         snap("07-catat-transaksi")
     }
 

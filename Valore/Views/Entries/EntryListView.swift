@@ -13,70 +13,94 @@ struct EntryListView: View {
         let groups = dayGroups
 
         NavigationStack {
-            Group {
-                if entries.isEmpty {
-                    ContentUnavailableView(
-                        "Belum ada transaksi",
-                        systemImage: "tray",
-                        description: Text("Catat pemasukan atau pengeluaran pertamamu.")
-                    )
-                } else {
-                    List {
-                        // Chip filter sebagai baris pertama: tetap terlihat walau hasilnya kosong,
-                        // dan judul besar navigasi tidak tertutup.
-                        Section {
-                            filterBar
-                                .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    ScreenHeader(title: "Transaksi") {
+                        BrutIconButton(symbol: "plus", label: "Catat transaksi", fill: Permen.cyan) { showingNew = true }
+                    }
+
+                    if entries.isEmpty {
+                        EmptyCard(
+                            symbol: "tray",
+                            title: "Belum ada transaksi",
+                            message: "Catat pemasukan atau pengeluaran pertamamu.",
+                            actionTitle: "Catat transaksi",
+                            action: { showingNew = true }
+                        )
+                    } else {
+                        searchField
+                        filterBar
 
                         if groups.isEmpty {
-                            Section {
-                                ContentUnavailableView.search(text: search)
-                                    .listRowBackground(Color.clear)
-                            }
+                            EmptyCard(symbol: "magnifyingglass", title: "Tidak ketemu", message: "Coba kata lain atau lepas filternya.")
                         }
 
                         ForEach(groups) { group in
-                            Section {
-                                ForEach(group.items) { entry in
-                                    Button { editing = entry } label: {
-                                        EntryRow(entry: entry)
-                                    }
-                                    .listRowBackground(Palette.card)
-                                }
-                                .onDelete { offsets in
-                                    for index in offsets { context.delete(group.items[index]) }
-                                    try? context.save()
-                                }
-                            } header: {
+                            VStack(alignment: .leading, spacing: 8) {
                                 HStack {
-                                    Text(Fmt.day(group.day))
+                                    FieldLabel(Fmt.day(group.day))
                                     Spacer()
                                     Text(Fmt.rupiah(group.net, signed: true))
-                                        .monospacedDigit()
+                                        .font(.nunito(13, .black))
+                                        .foregroundStyle(group.net > 0 ? Permen.jade : Permen.ink)
                                 }
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .textCase(nil)
+                                VStack(spacing: 0) {
+                                    ForEach(Array(group.items.enumerated()), id: \.element.id) { index, entry in
+                                        if index > 0 { InkDivider() }
+                                        Button { editing = entry } label: {
+                                            EntryRow(entry: entry)
+                                                .padding(.horizontal, 14)
+                                                .padding(.vertical, 12)
+                                        }
+                                        .buttonStyle(.plain)
+                                        .contextMenu {
+                                            Button(role: .destructive) {
+                                                context.delete(entry)
+                                                try? context.save()
+                                            } label: {
+                                                Label("Hapus transaksi", systemImage: "trash")
+                                            }
+                                        }
+                                    }
+                                }
+                                .background(BrutShape())
                             }
                         }
                     }
-                    .scrollContentBackground(.hidden)
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 32)
             }
-            .background(Palette.background)
-            .navigationTitle("Transaksi")
-            .searchable(text: $search, prompt: "Cari catatan, kategori, dompet")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showingNew = true } label: { Image(systemName: "plus") }
-                        .accessibilityLabel("Catat transaksi")
-                }
-            }
+            .scrollDismissesKeyboard(.interactively)
+            .background(PermenBackground())
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showingNew) { EntryFormView() }
             .sheet(item: $editing) { entry in EntryFormView(entry: entry) }
         }
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Permen.ink)
+            TextField("Cari catatan, kategori, dompet", text: $search)
+                .font(.nunito(16, .semibold))
+                .foregroundStyle(Permen.ink)
+                .submitLabel(.search)
+            if !search.isEmpty {
+                Button { search = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Permen.muted)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Hapus pencarian")
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(BrutShape(fill: Permen.surface, radius: Permen.radiusField, shadow: 0))
     }
 
     private var filterBar: some View {
@@ -85,9 +109,7 @@ struct EntryListView: View {
             ForEach(EntryKind.allCases) { kind in
                 FilterChip(title: kind.label, isSelected: kindFilter == kind) { kindFilter = kind }
             }
-            Spacer(minLength: 0)
         }
-        .buttonStyle(.borderless)
     }
 
     private struct DayGroup: Identifiable {

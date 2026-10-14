@@ -27,16 +27,17 @@ struct GoalDetailView: View {
         let deposits = (goal.deposits ?? []).sorted { $0.date > $1.date }
 
         return ScrollView {
-            VStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 18) {
                 hero(plan)
                 planCard(plan)
                 historyCard(deposits)
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 28)
+            .padding(.top, 8)
+            .padding(.bottom, 32)
         }
         .scrollDismissesKeyboard(.interactively)
-        .background(Palette.background)
+        .background(PermenBackground())
         .navigationTitle(goal.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -63,163 +64,150 @@ struct GoalDetailView: View {
 
     private func hero(_ plan: SavingsPlan) -> some View {
         VStack(spacing: 10) {
-            HalfGauge(progress: plan.progress, color: plan.pace.color, lineWidth: 16) {
-                VStack(spacing: 2) {
+            HalfGauge(progress: plan.progress, fill: plan.pace.barFill) {
+                VStack(spacing: 0) {
                     Image(systemName: goal.symbol)
-                        .font(.title3)
-                        .foregroundStyle(plan.pace.color)
+                        .font(.system(size: 20, weight: .bold))
                     Text(plan.progress, format: .percent.precision(.fractionLength(0)))
-                        .font(.system(size: 40, weight: .bold))
-                        .monospacedDigit()
+                        .font(.nunito(42, .black))
                 }
+                .foregroundStyle(Permen.ink)
             }
-            .frame(maxWidth: 230)
-            .padding(.top, 4)
+            .frame(maxWidth: 240)
+            .padding(.top, 6)
 
             Text(Fmt.rupiah(plan.saved))
-                .font(.title2.weight(.bold))
-                .monospacedDigit()
+                .font(.nunito(26, .black))
+                .foregroundStyle(Permen.ink)
             Text("dari \(Fmt.rupiah(plan.target))")
-                .foregroundStyle(.secondary)
+                .font(.nunito(15, .bold))
+                .foregroundStyle(Permen.muted)
             PaceBadge(pace: plan.pace)
 
             Button { showingDeposit = true } label: {
                 Label("Setor / Tarik", systemImage: "plus")
             }
-            .buttonStyle(InkButtonStyle())
-            .padding(.top, 8)
+            .buttonStyle(BrutButtonStyle(fill: Permen.lemon))
+            .padding(.top, 6)
         }
         .frame(maxWidth: .infinity)
-        .card(Palette.sky, padding: 22)
+        .brut(Permen.cyanSoft, padding: 20)
     }
 
     private func planCard(_ plan: SavingsPlan) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Rencana")
-                .font(.headline)
+            FieldLabel("Rencana")
 
             if plan.isDone {
-                Label("Target tercapai.", systemImage: "checkmark.seal.fill")
-                    .foregroundStyle(Palette.positive)
+                Sticker(text: "Target tercapai", fill: Permen.mint)
             } else if let deadline = goal.deadline {
                 infoRow("Tenggat", Fmt.day(deadline))
-                Divider()
+                InkDivider()
                 infoRow("Kurang", Fmt.rupiah(plan.remaining))
 
                 if plan.isOverdue {
                     Text("Tenggat sudah lewat. Ubah tenggatnya supaya rencana dihitung ulang.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.nunito(14, .semibold))
+                        .foregroundStyle(Permen.pinkText)
                 } else {
-                    Picker("Frekuensi", selection: $cadence) {
-                        ForEach(SavingCadence.allCases) { cadence in
-                            Text(cadence.label).tag(cadence)
-                        }
-                    }
-                    .pickerStyle(.segmented)
+                    BrutSegmented(options: SavingCadence.allCases, selection: $cadence) { $0.label }
 
                     if let perPeriod = plan.requiredPerPeriod(cadence), let periods = plan.periodsLeft(cadence) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Harus nabung")
-                                .font(.subheadline.weight(.medium))
-                                .foregroundStyle(.secondary)
+                            FieldLabel("Harus nabung")
                             HStack(alignment: .firstTextBaseline, spacing: 6) {
                                 Text(Fmt.rupiah(perPeriod))
-                                    .font(.system(size: 28, weight: .bold))
-                                    .monospacedDigit()
+                                    .font(.nunito(30, .black))
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.6)
                                 Text(cadence.perLabel)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .font(.nunito(14, .bold))
                             }
+                            .foregroundStyle(Permen.ink)
                             Text("Masih \(periods) \(cadence.unitLabel) lagi sampai tenggat.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.nunito(12, .semibold, relativeTo: .caption))
+                                .foregroundStyle(Permen.muted)
                         }
-                        .card(Palette.yellow, padding: 16, radius: 20)
+                        .brut(Permen.lemon, padding: 14, radius: Permen.radiusField, shadow: 0)
                     }
                     if let expected = plan.expectedByNow {
                         Text("Kalau nabung rata dari awal, per hari ini idealnya sudah terkumpul \(Fmt.rupiah(expected)).")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .font(.nunito(13, .semibold))
+                            .foregroundStyle(Permen.muted)
                     }
                 }
             } else {
                 infoRow("Kurang", Fmt.rupiah(plan.remaining))
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Simulasi: kalau nabung per bulan")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
+                    FieldLabel("Simulasi nabung per bulan")
                     RupiahField(amount: $simulatedMonthly)
                     if let months = plan.monthsToReach(saving: simulatedMonthly), let date = plan.projectedDate(saving: simulatedMonthly) {
                         Text("Tercapai sekitar \(months) bulan lagi, kira-kira \(Fmt.month(date)).")
-                            .font(.subheadline.weight(.semibold))
+                            .font(.nunito(14, .extraBold))
+                            .foregroundStyle(Permen.ink)
                     }
                 }
-                .card(Palette.yellow, padding: 16, radius: 20)
+                .brut(Permen.lemon, padding: 14, radius: Permen.radiusField, shadow: 0)
             }
         }
-        .card()
+        .brut()
     }
 
     private func historyCard(_ deposits: [GoalDeposit]) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Riwayat setoran")
-                .font(.headline)
-                .padding(.bottom, 10)
+        VStack(alignment: .leading, spacing: 10) {
+            FieldLabel("Riwayat setoran")
             if deposits.isEmpty {
                 Text("Belum ada setoran.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            ForEach(Array(deposits.enumerated()), id: \.element.id) { index, deposit in
-                if index > 0 { Divider() }
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(deposit.note.isEmpty ? (deposit.amount >= 0 ? "Setoran" : "Penarikan") : deposit.note)
-                            .font(.subheadline.weight(.medium))
-                        Text(Fmt.day(deposit.date))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    .font(.nunito(14, .semibold))
+                    .foregroundStyle(Permen.muted)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(deposits.enumerated()), id: \.element.id) { index, deposit in
+                        if index > 0 { InkDivider() }
+                        HStack {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(deposit.note.isEmpty ? (deposit.amount >= 0 ? "Setoran" : "Penarikan") : deposit.note)
+                                    .font(.nunito(15, .extraBold))
+                                Text(Fmt.day(deposit.date))
+                                    .font(.nunito(12, .semibold, relativeTo: .caption))
+                                    .foregroundStyle(Permen.muted)
+                            }
+                            Spacer()
+                            Text(Fmt.rupiah(deposit.amount, signed: true))
+                                .font(.nunito(15, .black))
+                                .foregroundStyle(deposit.amount >= 0 ? Permen.jade : Permen.pinkText)
+                        }
+                        .foregroundStyle(Permen.ink)
+                        .padding(.vertical, 10)
+                        .contentShape(Rectangle())
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                context.delete(deposit)
+                                try? context.save()
+                            } label: {
+                                Label("Hapus setoran", systemImage: "trash")
+                            }
+                        }
                     }
-                    Spacer()
-                    Text(Fmt.rupiah(deposit.amount, signed: true))
-                        .font(.subheadline.weight(.bold))
-                        .monospacedDigit()
-                        .foregroundStyle(deposit.amount >= 0 ? Palette.positive : Palette.coral)
                 }
-                .padding(.vertical, 10)
-                .contentShape(Rectangle())
-                .contextMenu {
-                    Button(role: .destructive) {
-                        context.delete(deposit)
-                        try? context.save()
-                    } label: {
-                        Label("Hapus setoran", systemImage: "trash")
-                    }
-                }
-            }
-            if !deposits.isEmpty {
                 Text("Tekan lama untuk menghapus setoran.")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .padding(.top, 6)
+                    .font(.nunito(11, .semibold, relativeTo: .caption))
+                    .foregroundStyle(Permen.muted)
             }
         }
-        .card()
+        .brut()
     }
 
     private func infoRow(_ title: String, _ value: String) -> some View {
         HStack {
             Text(title)
-                .foregroundStyle(.secondary)
+                .font(.nunito(15, .semibold))
+                .foregroundStyle(Permen.muted)
             Spacer()
             Text(value)
-                .fontWeight(.semibold)
-                .monospacedDigit()
+                .font(.nunito(15, .black))
+                .foregroundStyle(Permen.ink)
         }
-        .font(.subheadline)
     }
 }
 

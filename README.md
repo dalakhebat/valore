@@ -10,17 +10,12 @@ The app is local-first: all data stays on the device. There is no account, serve
   <tr>
     <td><img src="docs/screenshots/01-beranda.png" width="220" alt="Home: total balance, wallets, goals"></td>
     <td><img src="docs/screenshots/04-detail-target.png" width="220" alt="Savings goal detail with plan"></td>
-    <td><img src="docs/screenshots/05-ringkasan.png" width="220" alt="Monthly summary with category chart"></td>
+    <td><img src="docs/screenshots/05-ringkasan.png" width="220" alt="Monthly summary with category bars"></td>
   </tr>
   <tr>
     <td><img src="docs/screenshots/02-transaksi.png" width="220" alt="Transactions grouped by day"></td>
     <td><img src="docs/screenshots/03-tabungan.png" width="220" alt="Savings goals with pace"></td>
     <td><img src="docs/screenshots/07-catat-transaksi.png" width="220" alt="New transaction form"></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/01-beranda-dark.png" width="220" alt="Home in dark mode"></td>
-    <td><img src="docs/screenshots/04-detail-target-dark.png" width="220" alt="Savings goal detail in dark mode"></td>
-    <td></td>
   </tr>
 </table>
 
@@ -34,16 +29,21 @@ The app is local-first: all data stays on the device. There is no account, serve
   - With a deadline: calculates the amount to save per day, week, or month, and reports whether you are *ahead*, *on track*, or *behind* compared with an even schedule.
   - Without a deadline: a simulator answers *"if I save X per month, when do I reach it?"*
   - Deposits and withdrawals with full history.
-- **Monthly summary**: income, expenses, and net for any month, a donut chart by category, and a 6-month income-vs-expense trend (Swift Charts).
+- **Monthly summary**: income, expenses, and net for any month, a share bar and per-category breakdown, and a 6-month income-vs-expense bar chart.
 - **Backup and restore**: export everything to a versioned JSON file (Files / iCloud Drive) and restore it on any device.
 - Indonesian locale throughout: `Rp 1.500.000` formatting and Indonesian day and month names.
 
 ## Design
 
-- Calm, editorial layout: an off-white background, white cards with large corner radii, and a small set of pastel blocks (sky, green, butter, peach) reserved for the information that matters most.
-- Large, bold numbers carry the hierarchy. The system font (SF Pro) is used throughout.
-- Every color has a light and a dark value (`Palette` in `Views/Components/Theme.swift`), and dark mode follows the system setting.
-- Navigation and the tab bar are native iOS components, so accessibility and system behaviors stay intact.
+The interface uses **Permen** ("candy"), a pastel neo-brutalist design system:
+
+- A cream background with faint color glows; cards with 2 pt ink borders and hard 3 pt offset shadows, never blurred.
+- Flat candy colors (cyan, mint, lemon, pink), one color per card. Text and lines are always ink.
+- Everything tappable visibly presses in: it shifts and its shadow shrinks.
+- **Bangers** for headings, **Nunito** for body text and every number.
+- Light appearance only, because candy colors lose their character on dark backgrounds.
+
+Tokens live in `Views/Components/Theme.swift` and reusable pieces in `Views/Components/Components.swift`. Charts are drawn with plain SwiftUI shapes so they can carry the same ink outlines.
 
 ## Tech stack
 
@@ -51,7 +51,7 @@ The app is local-first: all data stays on the device. There is no account, serve
 |---|---|
 | UI | SwiftUI (iOS 17+) |
 | Persistence | SwiftData |
-| Charts | Swift Charts |
+| Fonts | Bangers and Nunito ([SIL Open Font License 1.1](Valore/Resources/Fonts)) |
 | Tests | Swift Testing |
 | Project | [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`project.yml` → `.xcodeproj`) |
 
@@ -68,6 +68,7 @@ Valore/
 ├── Models/       SwiftData models (Wallet, LedgerEntry, SavingGoal, GoalDeposit)
 ├── Services/     Backup export and restore (SwiftData ↔ BackupFile)
 ├── Views/        Screens grouped by feature, plus shared components
+├── Resources/    Bundled fonts and their licenses
 └── Preview/      Deterministic sample data for previews and screenshots
 ```
 

@@ -28,84 +28,80 @@ struct EntryFormView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 18) {
-                    Picker("Jenis", selection: $kind) {
-                        ForEach(EntryKind.allCases) { kind in
-                            Text(kind.label).tag(kind)
-                        }
-                    }
-                    .pickerStyle(.segmented)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SheetHeader(title: entry == nil ? "Catat transaksi" : "Ubah transaksi") { dismiss() }
 
+                BrutSegmented(options: EntryKind.allCases, selection: $kind) { $0.label }
+
+                VStack(spacing: 6) {
+                    FieldLabel("Jumlah")
                     RupiahField(amount: $amount, large: true)
-                        .padding(.vertical, 14)
-                        .card()
+                }
+                .frame(maxWidth: .infinity)
+                .brut(padding: 18)
 
-                    categoryCard
-                    walletCard
+                categoryCard
+                walletCard
 
-                    VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        FieldLabel("Tanggal")
+                        Spacer()
                         DatePicker("Tanggal", selection: $date)
-                            .padding(.vertical, 6)
-                        Divider()
-                        TextField("Catatan (opsional)", text: $note, axis: .vertical)
-                            .padding(.vertical, 12)
+                            .labelsHidden()
                     }
-                    .card(padding: 16)
+                    FieldLabel("Catatan")
+                    BrutTextField(prompt: "Opsional, mis. makan siang kantor", text: $note, axis: .vertical)
+                }
+                .brut()
 
-                    if entry != nil {
-                        Button("Hapus transaksi", role: .destructive) { confirmingDelete = true }
-                            .padding(.top, 4)
-                    }
-                }
-                .padding(20)
-            }
-            .scrollDismissesKeyboard(.interactively)
-            .background(Palette.background)
-            .safeAreaInset(edge: .bottom) {
-                Button("Simpan", action: save)
-                    .buttonStyle(InkButtonStyle(fullWidth: true))
-                    .disabled(amount <= 0 || wallet == nil)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
-                    .background(Palette.background)
-            }
-            .navigationTitle(entry == nil ? "Catat transaksi" : "Ubah transaksi")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Batal") { dismiss() }
+                if entry != nil {
+                    Button("Hapus transaksi") { confirmingDelete = true }
+                        .buttonStyle(BrutButtonStyle(fill: Permen.pinkSoft, fullWidth: true))
                 }
             }
-            .onAppear {
-                if wallet == nil { wallet = wallets.first }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .background(PermenBackground())
+        .safeAreaInset(edge: .bottom) {
+            Button("Simpan", action: save)
+                .buttonStyle(BrutButtonStyle(fullWidth: true))
+                .disabled(amount <= 0 || wallet == nil)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
+                .background(Permen.bg)
+        }
+        .onAppear {
+            if wallet == nil { wallet = wallets.first }
+        }
+        .onChange(of: kind) { _, newKind in
+            if !category.kinds.contains(newKind) {
+                category = EntryCategory.options(for: newKind).first ?? .lainnya
             }
-            .onChange(of: kind) { _, newKind in
-                if !category.kinds.contains(newKind) {
-                    category = EntryCategory.options(for: newKind).first ?? .lainnya
-                }
-            }
-            .confirmationDialog("Hapus transaksi ini?", isPresented: $confirmingDelete, titleVisibility: .visible) {
-                Button("Hapus", role: .destructive, action: delete)
-            }
+        }
+        .confirmationDialog("Hapus transaksi ini?", isPresented: $confirmingDelete, titleVisibility: .visible) {
+            Button("Hapus", role: .destructive, action: delete)
         }
     }
 
     private var categoryCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Kategori")
-                .font(.headline)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), alignment: .center, spacing: 16) {
+            FieldLabel("Kategori")
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 14) {
                 ForEach(EntryCategory.options(for: kind)) { option in
                     let isSelected = option == category
                     Button { category = option } label: {
                         VStack(spacing: 6) {
-                            CategoryIcon(category: option, size: 52)
-                                .overlay(Circle().strokeBorder(Palette.ink, lineWidth: isSelected ? 2.5 : 0))
+                            CategoryIcon(category: option, size: 50)
+                                .background(Circle().fill(Permen.ink).offset(x: isSelected ? 3 : 0, y: isSelected ? 3 : 0))
+                                .overlay(Circle().strokeBorder(Permen.ink, lineWidth: isSelected ? 3 : 0))
                             Text(option.label)
-                                .font(.caption2.weight(isSelected ? .semibold : .regular))
-                                .foregroundStyle(Color.primary)
+                                .font(.nunito(11, isSelected ? .black : .semibold, relativeTo: .caption))
+                                .foregroundStyle(Permen.ink)
                                 .multilineTextAlignment(.center)
                                 .lineLimit(2, reservesSpace: true)
                         }
@@ -115,24 +111,23 @@ struct EntryFormView: View {
                 }
             }
         }
-        .card()
+        .brut()
     }
 
     private var walletCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Dompet")
-                .font(.headline)
+            FieldLabel("Dompet")
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(wallets) { option in
-                        FilterChip(title: option.name, isSelected: option == wallet, unselectedFill: Palette.background) {
-                            wallet = option
-                        }
+                        FilterChip(title: option.name, isSelected: option == wallet) { wallet = option }
                     }
                 }
+                .padding(.vertical, 2)
+                .padding(.trailing, 4)
             }
         }
-        .card()
+        .brut()
     }
 
     private func save() {
