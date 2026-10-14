@@ -38,6 +38,12 @@ final class LedgerEntry {
         EntryRecord(amount: amount, kind: kind, category: category, date: date)
     }
 
+    /// Pesan kalau menghapus transaksi ini bikin saldo dompetnya minus (mis. menghapus pemasukan), selain itu nil.
+    var deletionProblem: String? {
+        guard let wallet, !BalanceRule.isAllowed(current: wallet.balance, removing: signedAmount) else { return nil }
+        return "Nggak bisa dihapus: saldo \(wallet.name) jadi \(Fmt.rupiah(BalanceRule.resultingBalance(current: wallet.balance, removing: signedAmount)))."
+    }
+
     func matches(_ query: String) -> Bool {
         [note, category.label, wallet?.name ?? ""].contains { $0.localizedCaseInsensitiveContains(query) }
     }

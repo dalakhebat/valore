@@ -8,6 +8,7 @@ struct EntryListView: View {
     @State private var kindFilter: EntryKind?
     @State private var showingNew = false
     @State private var editing: LedgerEntry?
+    @State private var deleteBlockedMessage: String?
 
     var body: some View {
         let groups = dayGroups
@@ -55,8 +56,12 @@ struct EntryListView: View {
                                         .buttonStyle(.plain)
                                         .contextMenu {
                                             Button(role: .destructive) {
-                                                context.delete(entry)
-                                                try? context.save()
+                                                if let problem = entry.deletionProblem {
+                                                    deleteBlockedMessage = problem
+                                                } else {
+                                                    context.delete(entry)
+                                                    try? context.save()
+                                                }
                                             } label: {
                                                 Label("Hapus transaksi", systemImage: "trash")
                                             }
@@ -77,6 +82,12 @@ struct EntryListView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showingNew) { EntryFormView() }
             .sheet(item: $editing) { entry in EntryFormView(entry: entry) }
+            .alert(
+                deleteBlockedMessage ?? "",
+                isPresented: Binding(get: { deleteBlockedMessage != nil }, set: { if !$0 { deleteBlockedMessage = nil } })
+            ) {
+                Button("OK", role: .cancel) {}
+            }
         }
     }
 

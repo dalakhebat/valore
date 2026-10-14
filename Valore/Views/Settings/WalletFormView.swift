@@ -43,6 +43,9 @@ struct WalletFormView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     FieldLabel("Saldo awal")
                     RupiahField(amount: $initialBalance)
+                    if let balanceProblem {
+                        Sticker(text: balanceProblem, fill: Permen.pinkSoft)
+                    }
                     Text("Isi saldo saat dompet ini mulai dicatat di VALORE.")
                         .font(.jakarta(13, .medium))
                         .foregroundStyle(Permen.muted)
@@ -62,7 +65,7 @@ struct WalletFormView: View {
         .safeAreaInset(edge: .bottom) {
             Button("Simpan", action: save)
                 .buttonStyle(BrutButtonStyle(fullWidth: true))
-                .disabled(trimmedName.isEmpty)
+                .disabled(trimmedName.isEmpty || balanceProblem != nil)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 8)
                 .background(Permen.bg)
@@ -72,6 +75,13 @@ struct WalletFormView: View {
         } message: {
             Text("Transaksi di dompet ini ikut terhapus dan tidak bisa dikembalikan.")
         }
+    }
+
+    /// Saldo awal tidak boleh diturunkan sampai saldo dompet jadi minus.
+    private var balanceProblem: String? {
+        guard let wallet else { return nil }
+        let result = BalanceRule.resultingBalance(current: wallet.balance, removing: wallet.initialBalance, adding: initialBalance)
+        return result < 0 ? "Saldo dompet jadi \(Fmt.rupiah(result))" : nil
     }
 
     private var trimmedName: String {

@@ -15,6 +15,7 @@ struct EntryFormView: View {
     @State private var date: Date
     @State private var note: String
     @State private var confirmingDelete = false
+    @State private var deleteBlockedMessage: String?
 
     init(entry: LedgerEntry? = nil, kind: EntryKind = .expense) {
         self.entry = entry
@@ -34,9 +35,16 @@ struct EntryFormView: View {
 
                 BrutSegmented(options: EntryKind.allCases, selection: $kind) { $0.label }
 
-                VStack(spacing: 6) {
+                VStack(spacing: 8) {
                     FieldLabel("Jumlah")
                     RupiahField(amount: $amount, large: true)
+                    if let balanceProblem {
+                        Sticker(text: balanceProblem, fill: Permen.pinkSoft)
+                    } else if kind == .expense, let wallet {
+                        Text("Saldo \(wallet.name) \(Fmt.rupiah(BalanceRule.spendable(current: wallet.balance, removing: previousSignedInSelectedWallet)))")
+                            .font(.jakarta(13, .semibold))
+                            .foregroundStyle(Permen.muted)
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .brut(padding: 18)
@@ -57,7 +65,13 @@ struct EntryFormView: View {
                 .brut()
 
                 if entry != nil {
-                    Button("Hapus transaksi") { confirmingDelete = true }
+                    Button("Hapus transaksi") {
+                        if let problem = entry?.deletionProblem {
+                            deleteBlockedMessage = problem
+                        } else {
+                            confirmingDelete = true
+                        }
+                    }
                         .buttonStyle(BrutButtonStyle(fill: Permen.pinkSoft, fullWidth: true))
                 }
             }
@@ -69,7 +83,7 @@ struct EntryFormView: View {
         .safeAreaInset(edge: .bottom) {
             Button("Simpan", action: save)
                 .buttonStyle(BrutButtonStyle(fullWidth: true))
-                .disabled(amount <= 0 || wallet == nil)
+                .disabled(amount <= 0 || wallet == nil || balanceProblem != nil)
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
                 .padding(.bottom, 8)
@@ -86,6 +100,36 @@ struct EntryFormView: View {
         .confirmationDialog("Hapus transaksi ini?", isPresented: $confirmingDelete, titleVisibility: .visible) {
             Button("Hapus", role: .destructive, action: delete)
         }
+        .alert(
+            deleteBlockedMessage ?? "",
+            isPresented: Binding(get: { deleteBlockedMessage != nil }, set: { if !$0 { deleteBlockedMessage = nil } })
+        ) {
+            Button("OK", role: .cancel) {}
+        }
+    }
+
+    // MARK: - Aturan saldo (tidak boleh minus)
+
+    /// Nilai transaksi lama yang sudah terhitung di saldo dompet yang sedang dipilih.
+    private var previousSignedInSelectedWallet: Int {
+        guard let entry, let wallet, entry.wallet == wallet else { return 0 }
+        return entry.signedAmount
+    }
+
+    /// Alasan transaksi ini tidak boleh disimpan karena bikin saldo minus, atau nil kalau aman.
+    private var balanceProblem: String? {
+        if let wallet, !BalanceRule.isAllowed(current: wallet.balance, removing: previousSignedInSelectedWallet, adding: amount * kind.sign) {
+            let spendable = BalanceRule.spendable(current: wallet.balance, removing: previousSignedInSelectedWallet)
+            return kind == .expense
+                ? "Saldo \(wallet.name) cuma \(Fmt.rupiah(spendable))"
+                : "Saldo \(wallet.name) jadi minus"
+        }
+        // Pindah dompet: dompet lama kehilangan transaksi ini (masalah kalau transaksinya pemasukan).
+        if let entry, let previous = entry.wallet, previous != wallet,
+           !BalanceRule.isAllowed(current: previous.balance, removing: entry.signedAmount) {
+            return "Saldo \(previous.name) jadi minus kalau dipindah"
+        }
+        return nil
     }
 
     private var categoryCard: some View {

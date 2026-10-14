@@ -85,8 +85,8 @@ schemes:
       targets:
         - ValoreTests
 
-  # Ambil screenshot README (lampiran di hasil tes). Dipisah supaya ⌘U tetap cepat.
-  Screenshots:
+  # Tes UI: perilaku form + screenshot README (lampiran di hasil tes). Dipisah supaya ⌘U tetap cepat.
+  UITests:
     build:
       targets:
         Valore: all

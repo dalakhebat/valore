@@ -186,32 +186,44 @@ struct BrutSegmented<Option: Hashable>: View {
 
 // MARK: - Input
 
-/// Input nominal rupiah dengan pemisah ribuan otomatis.
+/// Input nominal rupiah; titik ribuan muncul langsung saat mengetik.
 struct RupiahField: View {
     @Binding var amount: Int
     var prompt = "0"
     /// Versi besar di tengah, untuk form utama.
     var large = false
+    // Teks disimpan sendiri: TextField tidak memformat ulang selagi diketik
+    // kalau hanya lewat Binding hitungan, jadi titik baru muncul setelah fokus lepas.
+    @State private var text = ""
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text("Rp")
                 .font(.jakarta(large ? 22 : 18, .bold))
                 .foregroundStyle(Permen.muted)
-            TextField(prompt, text: text)
+            TextField(prompt, text: $text)
                 .keyboardType(.numberPad)
                 .font(.jakarta(large ? 46 : 28, .extraBold))
                 .foregroundStyle(Permen.ink)
                 .fixedSize(horizontal: large, vertical: false)
+                .accessibilityIdentifier("amountField")
         }
         .frame(maxWidth: .infinity, alignment: large ? .center : .leading)
+        .onAppear { text = Self.display(amount) }
+        .onChange(of: text) { _, newText in
+            let value = Fmt.parseAmount(newText)
+            let formatted = Self.display(value)
+            if formatted != newText { text = formatted }
+            if amount != value { amount = value }
+        }
+        .onChange(of: amount) { _, newAmount in
+            // Perubahan dari luar (mis. form di-reset).
+            if Fmt.parseAmount(text) != newAmount { text = Self.display(newAmount) }
+        }
     }
 
-    private var text: Binding<String> {
-        Binding(
-            get: { amount == 0 ? "" : Fmt.number(amount) },
-            set: { amount = Fmt.parseAmount($0) }
-        )
+    private static func display(_ value: Int) -> String {
+        value == 0 ? "" : Fmt.number(value)
     }
 }
 

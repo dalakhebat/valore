@@ -119,10 +119,10 @@ xcodebuild test -scheme Valore -destination 'platform=iOS Simulator,name=iPhone 
 
 Or press ⌘U in Xcode. The tests cover the savings planner (rounding, partial months, overdue goals, pace), monthly aggregation and month boundaries, Rupiah formatting and parsing, and the backup round trip and version checks.
 
-The `Screenshots` scheme runs a UI test that launches the app with sample data, walks through every main screen, and attaches a screenshot of each to the test result:
+The `UITests` scheme checks form behavior (live thousands separators, no overspending a wallet) and runs a UI test that walks through every main screen with sample data, attaching a screenshot of each to the test result:
 
 ```bash
-xcodebuild test -scheme Screenshots -destination 'platform=iOS Simulator,name=iPhone 17' -resultBundlePath shots.xcresult
+xcodebuild test -scheme UITests -destination 'platform=iOS Simulator,name=iPhone 17' -resultBundlePath shots.xcresult
 xcrun xcresulttool export attachments --path shots.xcresult --output-path screenshots
 ```
 
