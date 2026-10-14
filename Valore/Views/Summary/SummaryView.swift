@@ -12,69 +12,128 @@ struct SummaryView: View {
         let trend = MonthTotal.trend(records: records, endingAt: month, count: 6)
 
         NavigationStack {
-            List {
-                Section {
+            ScrollView {
+                VStack(spacing: 16) {
                     monthSwitcher
-                    LabeledContent("Pemasukan", value: Fmt.rupiah(summary.income))
-                    LabeledContent("Pengeluaran", value: Fmt.rupiah(summary.expense))
-                    LabeledContent("Selisih") {
-                        Text(Fmt.rupiah(summary.net, signed: true))
-                            .fontWeight(.semibold)
-                            .foregroundStyle(summary.net >= 0 ? Color.green : Color.red)
+                    HStack(spacing: 10) {
+                        StatTile(title: "Pemasukan", value: Fmt.compactRupiah(summary.income), fill: Palette.green)
+                        StatTile(title: "Pengeluaran", value: Fmt.compactRupiah(summary.expense), fill: Palette.peach)
+                        StatTile(title: "Selisih", value: (summary.net > 0 ? "+" : "") + Fmt.compactRupiah(summary.net), fill: Palette.sky)
                     }
+                    categoryCard(summary)
+                    trendCard(trend)
                 }
-                .monospacedDigit()
-
-                Section("Pengeluaran per kategori") {
-                    if summary.expenseByCategory.isEmpty {
-                        Text("Belum ada pengeluaran di bulan ini.")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        CategoryDonut(summary: summary)
-                            .frame(height: 220)
-                            .padding(.vertical, 8)
-                        ForEach(summary.expenseByCategory) { item in
-                            HStack(spacing: 12) {
-                                CategoryIcon(category: item.category)
-                                Text(item.category.label)
-                                Spacer()
-                                VStack(alignment: .trailing, spacing: 2) {
-                                    Text(Fmt.rupiah(item.amount))
-                                        .monospacedDigit()
-                                    Text(item.share, format: .percent.precision(.fractionLength(0)))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Section("6 bulan terakhir") {
-                    TrendChart(trend: trend)
-                        .frame(height: 200)
-                        .padding(.vertical, 8)
-                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 28)
             }
+            .background(Palette.background)
             .navigationTitle("Ringkasan")
         }
     }
 
     private var monthSwitcher: some View {
-        let calendar = Calendar.current
-        let isCurrentMonth = calendar.isDate(month, equalTo: .now, toGranularity: .month)
+        let isCurrentMonth = Calendar.current.isDate(month, equalTo: .now, toGranularity: .month)
         return HStack {
-            Button { shiftMonth(by: -1) } label: { Image(systemName: "chevron.left") }
-                .accessibilityLabel("Bulan sebelumnya")
+            CircleIconButton(symbol: "chevron.left", label: "Bulan sebelumnya") { shiftMonth(by: -1) }
             Spacer()
             Text(Fmt.month(month))
                 .font(.headline)
             Spacer()
-            Button { shiftMonth(by: 1) } label: { Image(systemName: "chevron.right") }
+            CircleIconButton(symbol: "chevron.right", label: "Bulan berikutnya") { shiftMonth(by: 1) }
                 .disabled(isCurrentMonth)
-                .accessibilityLabel("Bulan berikutnya")
+                .opacity(isCurrentMonth ? 0.3 : 1)
         }
-        .buttonStyle(.borderless)
+    }
+
+    private func categoryCard(_ summary: MonthSummary) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Pengeluaran per kategori")
+                .font(.headline)
+            if summary.expenseByCategory.isEmpty {
+                Text("Belum ada pengeluaran di bulan ini.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                ZStack {
+                    Chart(summary.expenseByCategory) { item in
+                        SectorMark(angle: .value("Jumlah", item.amount), innerRadius: .ratio(0.64), angularInset: 2)
+                            .cornerRadius(5)
+                            .foregroundStyle(item.category.color)
+                    }
+                    VStack(spacing: 2) {
+                        Text("Total keluar")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(Fmt.compactRupiah(summary.expense))
+                            .font(.title3.weight(.bold))
+                            .monospacedDigit()
+                    }
+                }
+                .frame(height: 210)
+
+                VStack(spacing: 0) {
+                    ForEach(Array(summary.expenseByCategory.enumerated()), id: \.element.id) { index, item in
+                        if index > 0 { Divider().padding(.leading, 48) }
+                        HStack(spacing: 12) {
+                            CategoryIcon(category: item.category, size: 36)
+                            Text(item.category.label)
+                                .font(.subheadline.weight(.medium))
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 1) {
+                                Text(Fmt.rupiah(item.amount))
+                                    .font(.subheadline.weight(.semibold))
+                                    .monospacedDigit()
+                                Text(item.share, format: .percent.precision(.fractionLength(0)))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 9)
+                    }
+                }
+            }
+        }
+        .card()
+    }
+
+    private func trendCard(_ trend: [MonthTotal]) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("6 bulan terakhir")
+                .font(.headline)
+            Chart(trend) { month in
+                LineMark(x: .value("Bulan", month.month, unit: .month), y: .value("Jumlah", month.income))
+                    .foregroundStyle(by: .value("Jenis", "Masuk"))
+                    .interpolationMethod(.catmullRom)
+                    .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .symbol(Circle().strokeBorder(lineWidth: 2))
+                    .symbolSize(40)
+                LineMark(x: .value("Bulan", month.month, unit: .month), y: .value("Jumlah", month.expense))
+                    .foregroundStyle(by: .value("Jenis", "Keluar"))
+                    .interpolationMethod(.catmullRom)
+                    .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .symbol(Circle().strokeBorder(lineWidth: 2))
+                    .symbolSize(40)
+            }
+            .chartForegroundStyleScale(["Masuk": Palette.positive, "Keluar": Palette.coral])
+            .chartLegend(position: .top, alignment: .leading)
+            .chartXAxis {
+                AxisMarks(values: .stride(by: .month)) { _ in
+                    AxisValueLabel(format: .dateTime.month(.abbreviated))
+                }
+            }
+            .chartYAxis {
+                AxisMarks(position: .leading) { value in
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
+                    AxisValueLabel {
+                        if let amount = value.as(Int.self) {
+                            Text(Fmt.compact(amount))
+                        }
+                    }
+                }
+            }
+            .frame(height: 200)
+        }
+        .card()
     }
 
     private func shiftMonth(by value: Int) {
@@ -84,56 +143,23 @@ struct SummaryView: View {
     }
 }
 
-private struct CategoryDonut: View {
-    let summary: MonthSummary
+private struct StatTile: View {
+    let title: String
+    let value: String
+    let fill: Color
 
     var body: some View {
-        ZStack {
-            Chart(summary.expenseByCategory) { item in
-                SectorMark(angle: .value("Jumlah", item.amount), innerRadius: .ratio(0.62), angularInset: 1.5)
-                    .cornerRadius(4)
-                    .foregroundStyle(item.category.color)
-            }
-            VStack(spacing: 2) {
-                Text("Total keluar")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text(Fmt.compactRupiah(summary.expense))
-                    .font(.headline)
-                    .monospacedDigit()
-            }
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.headline)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
         }
-    }
-}
-
-private struct TrendChart: View {
-    let trend: [MonthTotal]
-
-    var body: some View {
-        Chart(trend) { month in
-            BarMark(x: .value("Bulan", month.month, unit: .month), y: .value("Jumlah", month.income))
-                .foregroundStyle(by: .value("Jenis", "Masuk"))
-                .position(by: .value("Jenis", "Masuk"))
-            BarMark(x: .value("Bulan", month.month, unit: .month), y: .value("Jumlah", month.expense))
-                .foregroundStyle(by: .value("Jenis", "Keluar"))
-                .position(by: .value("Jenis", "Keluar"))
-        }
-        .chartForegroundStyleScale(["Masuk": Color.green, "Keluar": Color.red])
-        .chartXAxis {
-            AxisMarks(values: .stride(by: .month)) { _ in
-                AxisValueLabel(format: .dateTime.month(.abbreviated), centered: true)
-            }
-        }
-        .chartYAxis {
-            AxisMarks { value in
-                AxisGridLine()
-                AxisValueLabel {
-                    if let amount = value.as(Int.self) {
-                        Text(Fmt.compact(amount))
-                    }
-                }
-            }
-        }
+        .card(fill, padding: 14, radius: 20)
     }
 }
 

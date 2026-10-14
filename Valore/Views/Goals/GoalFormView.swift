@@ -50,6 +50,8 @@ struct GoalFormView: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
+            .scrollContentBackground(.hidden)
+            .background(Palette.background)
             .navigationTitle(goal == nil ? "Target baru" : "Ubah target")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

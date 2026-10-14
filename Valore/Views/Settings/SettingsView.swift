@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @Query(sort: \Wallet.createdAt) private var wallets: [Wallet]
+    @AppStorage("displayName") private var displayName = ""
 
     @State private var editingWallet: Wallet?
     @State private var showingNewWallet = false
@@ -17,6 +18,15 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    TextField("Nama panggilan", text: $displayName)
+                        .textInputAutocapitalization(.words)
+                } header: {
+                    Text("Profil")
+                } footer: {
+                    Text("Dipakai untuk sapaan di Beranda.")
+                }
+
                 Section {
                     ForEach(wallets) { wallet in
                         Button { editingWallet = wallet } label: {
@@ -66,6 +76,8 @@ struct SettingsView: View {
                     LabeledContent("Versi", value: appVersion)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Palette.background)
             .navigationTitle("Pengaturan")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -50,4 +50,14 @@ enum Fmt {
     static func month(_ date: Date) -> String {
         date.formatted(.dateTime.month(.wide).year().locale(locale))
     }
+
+    /// Sapaan sesuai jam: pagi (04–10), siang (11–14), sore (15–17), selain itu malam.
+    static func greeting(at date: Date, calendar: Calendar = .current) -> String {
+        switch calendar.component(.hour, from: date) {
+        case 4..<11: "Selamat pagi"
+        case 11..<15: "Selamat siang"
+        case 15..<18: "Selamat sore"
+        default: "Selamat malam"
+        }
+    }
 }

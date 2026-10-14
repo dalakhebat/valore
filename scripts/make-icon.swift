@@ -1,4 +1,4 @@
-// Menggambar ikon app 1024×1024 (gradien teal→hijau + simbol dompet).
+// Menggambar ikon app 1024×1024: monogram "V" di atas biru pastel.
 // Jalankan dari root repo: swift scripts/make-icon.swift
 import AppKit
 
@@ -16,23 +16,21 @@ NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = NSGraphicsContext(cgContext: cg, flipped: false)
 
 let canvas = NSRect(x: 0, y: 0, width: size, height: size)
-let gradient = NSGradient(
-    starting: NSColor(srgbRed: 0.00, green: 0.50, blue: 0.53, alpha: 1),
-    ending: NSColor(srgbRed: 0.20, green: 0.78, blue: 0.47, alpha: 1)
-)!
-gradient.draw(in: canvas, angle: -45)
+// Latar biru pastel (Palette.sky) + monogram "V" warna tinta (Palette.ink).
+NSColor(srgbRed: 0xCD / 255, green: 0xE8 / 255, blue: 0xF2 / 255, alpha: 1).setFill()
+canvas.fill()
 
-let config = NSImage.SymbolConfiguration(pointSize: 470, weight: .semibold)
-    .applying(.init(paletteColors: [.white]))
-guard let symbol = NSImage(systemSymbolName: "wallet.bifold.fill", accessibilityDescription: nil)?
-    .withSymbolConfiguration(config) else { fatalError("SF Symbol tidak ditemukan") }
-let symbolSize = symbol.size
-symbol.draw(in: NSRect(
-    x: (CGFloat(size) - symbolSize.width) / 2,
-    y: (CGFloat(size) - symbolSize.height) / 2,
-    width: symbolSize.width,
-    height: symbolSize.height
-))
+let ink = NSColor(srgbRed: 0x1C / 255, green: 0x1C / 255, blue: 0x1E / 255, alpha: 1)
+let monogram = NSAttributedString(string: "V", attributes: [
+    .font: NSFont.systemFont(ofSize: 640, weight: .black),
+    .foregroundColor: ink,
+])
+let textSize = monogram.size()
+monogram.draw(at: NSPoint(x: (CGFloat(size) - textSize.width) / 2, y: (CGFloat(size) - textSize.height) / 2 + 10))
+
+// Titik kecil coral sebagai aksen.
+NSColor(srgbRed: 0xE0 / 255, green: 0x70 / 255, blue: 0x4F / 255, alpha: 1).setFill()
+NSBezierPath(ovalIn: NSRect(x: 712, y: 250, width: 96, height: 96)).fill()
 
 NSGraphicsContext.restoreGraphicsState()
 

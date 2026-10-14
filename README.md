@@ -2,7 +2,7 @@
 
 A personal finance tracker and savings planner for iPhone, built with SwiftUI and SwiftData.
 
-VALORE (Italian for "value") records income and expenses across multiple wallets, summarizes where the money went each month, and turns savings goals into a concrete plan: *"save Rp 2.125.000 per month to reach this goal on time."*
+VALORE (Italian for "value") records income and expenses across multiple wallets, summarizes where the money went each month, and turns savings goals into a concrete plan: *"save Rp 2.062.500 per month to reach this goal on time."*
 
 The app is local-first: all data stays on the device. There is no account, server, or analytics.
 
@@ -17,13 +17,18 @@ The app is local-first: all data stays on the device. There is no account, serve
     <td><img src="docs/screenshots/03-tabungan.png" width="220" alt="Savings goals with pace"></td>
     <td><img src="docs/screenshots/07-catat-transaksi.png" width="220" alt="New transaction form"></td>
   </tr>
+  <tr>
+    <td><img src="docs/screenshots/01-beranda-dark.png" width="220" alt="Home in dark mode"></td>
+    <td><img src="docs/screenshots/04-detail-target-dark.png" width="220" alt="Savings goal detail in dark mode"></td>
+    <td></td>
+  </tr>
 </table>
 
 <sub>Screenshots use generated sample data, not real finances. They are captured automatically by a UI test (see below).</sub>
 
 ## Features
 
-- **Transactions**: record income and expenses with category, wallet, date, and note. Search, filter, and swipe to delete.
+- **Transactions**: record income and expenses with category, wallet, date, and note. Search, filter chips, and swipe to delete.
 - **Wallets**: cash, bank accounts, and e-wallets, each with an opening balance and a live balance.
 - **Savings goals**
   - With a deadline: calculates the amount to save per day, week, or month, and reports whether you are *ahead*, *on track*, or *behind* compared with an even schedule.
@@ -32,6 +37,13 @@ The app is local-first: all data stays on the device. There is no account, serve
 - **Monthly summary**: income, expenses, and net for any month, a donut chart by category, and a 6-month income-vs-expense trend (Swift Charts).
 - **Backup and restore**: export everything to a versioned JSON file (Files / iCloud Drive) and restore it on any device.
 - Indonesian locale throughout: `Rp 1.500.000` formatting and Indonesian day and month names.
+
+## Design
+
+- Calm, editorial layout: an off-white background, white cards with large corner radii, and a small set of pastel blocks (sky, green, butter, peach) reserved for the information that matters most.
+- Large, bold numbers carry the hierarchy. The system font (SF Pro) is used throughout.
+- Every color has a light and a dark value (`Palette` in `Views/Components/Theme.swift`), and dark mode follows the system setting.
+- Navigation and the tab bar are native iOS components, so accessibility and system behaviors stay intact.
 
 ## Tech stack
 

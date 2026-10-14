@@ -7,7 +7,7 @@ final class ScreenshotTests: XCTestCase {
 
     override func setUp() {
         continueAfterFailure = false
-        app.launchArguments = ["-sampleData"]
+        app.launchArguments = ["-sampleData", "-displayName", "Jey"]
         app.launch()
     }
 
@@ -21,6 +21,13 @@ final class ScreenshotTests: XCTestCase {
 
         app.tabBars.buttons["Transaksi"].tap()
         snap("02-transaksi")
+
+        // Chip filter ada di dalam daftar; pastikan bisa diketuk sendiri-sendiri.
+        tapVisible(app.buttons, "Pemasukan")
+        Thread.sleep(forTimeInterval: 0.5)
+        XCTAssertTrue(isVisible(app.staticTexts, "Gaji bulanan"), "Pemasukan harus tampil di atas setelah difilter")
+        XCTAssertFalse(isVisible(app.staticTexts, "Ojek online"), "Pengeluaran harus tersaring")
+        tapVisible(app.buttons, "Semua")
 
         app.tabBars.buttons["Tabungan"].tap()
         snap("03-tabungan")
@@ -42,9 +49,13 @@ final class ScreenshotTests: XCTestCase {
         snap("06-ringkasan-tren")
 
         app.tabBars.buttons["Beranda"].tap()
-        tapVisible(app.buttons, "Catat transaksi")
+        tapVisible(app.buttons, "Catat pengeluaran")
         XCTAssertTrue(app.navigationBars["Catat transaksi"].waitForExistence(timeout: 3))
         snap("07-catat-transaksi")
+    }
+
+    private func isVisible(_ query: XCUIElementQuery, _ label: String) -> Bool {
+        query.matching(identifier: label).allElementsBoundByIndex.contains { $0.isHittable }
     }
 
     private func tapVisible(_ query: XCUIElementQuery, _ label: String) {

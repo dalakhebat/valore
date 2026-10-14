@@ -20,16 +20,30 @@ struct EntryListView: View {
                         systemImage: "tray",
                         description: Text("Catat pemasukan atau pengeluaran pertamamu.")
                     )
-                } else if groups.isEmpty {
-                    ContentUnavailableView.search(text: search)
                 } else {
                     List {
+                        // Chip filter sebagai baris pertama: tetap terlihat walau hasilnya kosong,
+                        // dan judul besar navigasi tidak tertutup.
+                        Section {
+                            filterBar
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        }
+
+                        if groups.isEmpty {
+                            Section {
+                                ContentUnavailableView.search(text: search)
+                                    .listRowBackground(Color.clear)
+                            }
+                        }
+
                         ForEach(groups) { group in
                             Section {
                                 ForEach(group.items) { entry in
                                     Button { editing = entry } label: {
                                         EntryRow(entry: entry)
                                     }
+                                    .listRowBackground(Palette.card)
                                 }
                                 .onDelete { offsets in
                                     for index in offsets { context.delete(group.items[index]) }
@@ -42,27 +56,19 @@ struct EntryListView: View {
                                     Text(Fmt.rupiah(group.net, signed: true))
                                         .monospacedDigit()
                                 }
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .textCase(nil)
                             }
                         }
                     }
+                    .scrollContentBackground(.hidden)
                 }
             }
+            .background(Palette.background)
             .navigationTitle("Transaksi")
             .searchable(text: $search, prompt: "Cari catatan, kategori, dompet")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Menu {
-                        Picker("Jenis", selection: $kindFilter) {
-                            Text("Semua").tag(EntryKind?.none)
-                            ForEach(EntryKind.allCases) { kind in
-                                Text(kind.label).tag(Optional(kind))
-                            }
-                        }
-                    } label: {
-                        Image(systemName: kindFilter == nil ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
-                    }
-                    .accessibilityLabel("Saring jenis transaksi")
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showingNew = true } label: { Image(systemName: "plus") }
                         .accessibilityLabel("Catat transaksi")
@@ -71,6 +77,17 @@ struct EntryListView: View {
             .sheet(isPresented: $showingNew) { EntryFormView() }
             .sheet(item: $editing) { entry in EntryFormView(entry: entry) }
         }
+    }
+
+    private var filterBar: some View {
+        HStack(spacing: 8) {
+            FilterChip(title: "Semua", isSelected: kindFilter == nil) { kindFilter = nil }
+            ForEach(EntryKind.allCases) { kind in
+                FilterChip(title: kind.label, isSelected: kindFilter == kind) { kindFilter = kind }
+            }
+            Spacer(minLength: 0)
+        }
+        .buttonStyle(.borderless)
     }
 
     private struct DayGroup: Identifiable {

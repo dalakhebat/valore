@@ -28,6 +28,18 @@ struct FmtTests {
     func parseAmount(text: String, expected: Int) {
         #expect(Fmt.parseAmount(text) == expected)
     }
+
+    @Test(arguments: [
+        (2, "Selamat malam"),
+        (4, "Selamat pagi"),
+        (10, "Selamat pagi"),
+        (11, "Selamat siang"),
+        (15, "Selamat sore"),
+        (18, "Selamat malam"),
+    ])
+    func greeting(hour: Int, expected: String) {
+        #expect(Fmt.greeting(at: date(2026, 10, 14, hour: hour), calendar: wib) == expected)
+    }
 }
 
 struct BackupFileTests {

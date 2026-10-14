@@ -49,6 +49,8 @@ struct WalletFormView: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
+            .scrollContentBackground(.hidden)
+            .background(Palette.background)
             .navigationTitle(wallet == nil ? "Dompet baru" : "Ubah dompet")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

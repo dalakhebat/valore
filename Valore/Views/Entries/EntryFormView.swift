@@ -16,11 +16,12 @@ struct EntryFormView: View {
     @State private var note: String
     @State private var confirmingDelete = false
 
-    init(entry: LedgerEntry? = nil) {
+    init(entry: LedgerEntry? = nil, kind: EntryKind = .expense) {
         self.entry = entry
-        _kind = State(initialValue: entry?.kind ?? .expense)
+        let initialKind = entry?.kind ?? kind
+        _kind = State(initialValue: initialKind)
         _amount = State(initialValue: entry?.amount ?? 0)
-        _category = State(initialValue: entry?.category ?? .makan)
+        _category = State(initialValue: entry?.category ?? EntryCategory.options(for: initialKind).first ?? .lainnya)
         _wallet = State(initialValue: entry?.wallet)
         _date = State(initialValue: entry?.date ?? .now)
         _note = State(initialValue: entry?.note ?? "")
@@ -28,53 +29,53 @@ struct EntryFormView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
+            ScrollView {
+                VStack(spacing: 18) {
                     Picker("Jenis", selection: $kind) {
                         ForEach(EntryKind.allCases) { kind in
                             Text(kind.label).tag(kind)
                         }
                     }
                     .pickerStyle(.segmented)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-                }
 
-                Section("Jumlah") {
-                    RupiahField(amount: $amount)
-                }
+                    RupiahField(amount: $amount, large: true)
+                        .padding(.vertical, 14)
+                        .card()
 
-                Section {
-                    Picker("Kategori", selection: $category) {
-                        ForEach(EntryCategory.options(for: kind)) { category in
-                            Label(category.label, systemImage: category.symbol).tag(category)
-                        }
+                    categoryCard
+                    walletCard
+
+                    VStack(spacing: 0) {
+                        DatePicker("Tanggal", selection: $date)
+                            .padding(.vertical, 6)
+                        Divider()
+                        TextField("Catatan (opsional)", text: $note, axis: .vertical)
+                            .padding(.vertical, 12)
                     }
-                    Picker("Dompet", selection: $wallet) {
-                        ForEach(wallets) { wallet in
-                            Label(wallet.name, systemImage: wallet.symbol).tag(Optional(wallet))
-                        }
-                    }
-                    DatePicker("Tanggal", selection: $date, displayedComponents: [.date, .hourAndMinute])
-                    TextField("Catatan (opsional)", text: $note, axis: .vertical)
-                }
+                    .card(padding: 16)
 
-                if entry != nil {
-                    Section {
+                    if entry != nil {
                         Button("Hapus transaksi", role: .destructive) { confirmingDelete = true }
+                            .padding(.top, 4)
                     }
                 }
+                .padding(20)
             }
             .scrollDismissesKeyboard(.interactively)
+            .background(Palette.background)
+            .safeAreaInset(edge: .bottom) {
+                Button("Simpan", action: save)
+                    .buttonStyle(InkButtonStyle(fullWidth: true))
+                    .disabled(amount <= 0 || wallet == nil)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 8)
+                    .background(Palette.background)
+            }
             .navigationTitle(entry == nil ? "Catat transaksi" : "Ubah transaksi")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Batal") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Simpan", action: save)
-                        .disabled(amount <= 0 || wallet == nil)
                 }
             }
             .onAppear {
@@ -89,6 +90,49 @@ struct EntryFormView: View {
                 Button("Hapus", role: .destructive, action: delete)
             }
         }
+    }
+
+    private var categoryCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Kategori")
+                .font(.headline)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), alignment: .center, spacing: 16) {
+                ForEach(EntryCategory.options(for: kind)) { option in
+                    let isSelected = option == category
+                    Button { category = option } label: {
+                        VStack(spacing: 6) {
+                            CategoryIcon(category: option, size: 52)
+                                .overlay(Circle().strokeBorder(Palette.ink, lineWidth: isSelected ? 2.5 : 0))
+                            Text(option.label)
+                                .font(.caption2.weight(isSelected ? .semibold : .regular))
+                                .foregroundStyle(Color.primary)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2, reservesSpace: true)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
+                }
+            }
+        }
+        .card()
+    }
+
+    private var walletCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Dompet")
+                .font(.headline)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(wallets) { option in
+                        FilterChip(title: option.name, isSelected: option == wallet, unselectedFill: Palette.background) {
+                            wallet = option
+                        }
+                    }
+                }
+            }
+        }
+        .card()
     }
 
     private func save() {
