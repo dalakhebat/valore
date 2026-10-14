@@ -41,4 +41,24 @@ final class EntryFormTests: XCTestCase {
         field.typeText(String(balance))
         XCTAssertTrue(app.buttons["Simpan"].isEnabled)
     }
+
+    func testLongAmountStaysOnOneLine() {
+        let field = app.textFields["amountField"]
+        let label = app.staticTexts["Rp"].firstMatch
+        let window = app.windows.firstMatch
+        field.tap()
+
+        for digits in ["50000000", "999999999999"] {
+            field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 16))
+            field.typeText(digits)
+            // "Rp" tetap satu baris dan berada di kiri angka, angka tidak keluar layar.
+            XCTAssertLessThan(label.frame.height, 40, "Rp terpecah jadi dua baris untuk \(digits)")
+            XCTAssertLessThanOrEqual(label.frame.maxX, field.frame.minX + 1)
+            XCTAssertLessThanOrEqual(field.frame.maxX, window.frame.maxX - 20, "Nominal \(digits) keluar dari kartu")
+        }
+        let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        shot.name = "11-nominal-panjang"
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
 }

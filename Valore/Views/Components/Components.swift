@@ -186,7 +186,8 @@ struct BrutSegmented<Option: Hashable>: View {
 
 // MARK: - Input
 
-/// Input nominal rupiah; titik ribuan muncul langsung saat mengetik.
+/// Input nominal rupiah; titik ribuan muncul langsung saat mengetik,
+/// dan hurufnya mengecil kalau nominalnya terlalu panjang untuk lebar kartu.
 struct RupiahField: View {
     @Binding var amount: Int
     var prompt = "0"
@@ -195,20 +196,29 @@ struct RupiahField: View {
     // Teks disimpan sendiri: TextField tidak memformat ulang selagi diketik
     // kalau hanya lewat Binding hitungan, jadi titik baru muncul setelah fokus lepas.
     @State private var text = ""
+    @State private var availableWidth: CGFloat = 0
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
+        HStack(alignment: .firstTextBaseline, spacing: Self.spacing) {
             Text("Rp")
-                .font(.jakarta(large ? 22 : 18, .bold))
+                .font(.custom(PermenFont.Weight.bold.rawValue, fixedSize: labelSize))
                 .foregroundStyle(Permen.muted)
+                .fixedSize()
             TextField(prompt, text: $text)
                 .keyboardType(.numberPad)
-                .font(.jakarta(large ? 46 : 28, .extraBold))
+                // Ukuran tetap (tanpa Dynamic Type) supaya hasil ukur di `fittedSize` akurat.
+                .font(.custom(PermenFont.Weight.extraBold.rawValue, fixedSize: fittedSize))
                 .foregroundStyle(Permen.ink)
                 .fixedSize(horizontal: large, vertical: false)
                 .accessibilityIdentifier("amountField")
         }
         .frame(maxWidth: .infinity, alignment: large ? .center : .leading)
+        .background(
+            GeometryReader { proxy in
+                Color.clear.preference(key: AvailableWidthKey.self, value: proxy.size.width)
+            }
+        )
+        .onPreferenceChange(AvailableWidthKey.self) { availableWidth = $0 }
         .onAppear { text = Self.display(amount) }
         .onChange(of: text) { _, newText in
             let value = Fmt.parseAmount(newText)
@@ -222,8 +232,33 @@ struct RupiahField: View {
         }
     }
 
+    private static let spacing: CGFloat = 6
+    /// Ruang ekstra untuk kursor dan napas di tepi.
+    private static let slack: CGFloat = 18
+
+    private var maxSize: CGFloat { large ? 46 : 28 }
+    private var labelSize: CGFloat { large ? 22 : 18 }
+
+    private var fittedSize: CGFloat {
+        guard availableWidth > 0 else { return maxSize }
+        let sample = (text.isEmpty ? prompt : text) as NSString
+        let measured = sample.size(withAttributes: [.font: PermenFont.uiFont(.extraBold, size: maxSize)]).width
+        let label = ("Rp" as NSString).size(withAttributes: [.font: PermenFont.uiFont(.bold, size: labelSize)]).width
+        let room = availableWidth - label - Self.spacing - Self.slack
+        guard measured > room, measured > 0, room > 0 else { return maxSize }
+        return max(floor(maxSize * room / measured), 16)
+    }
+
     private static func display(_ value: Int) -> String {
         value == 0 ? "" : Fmt.number(value)
+    }
+}
+
+private struct AvailableWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 
