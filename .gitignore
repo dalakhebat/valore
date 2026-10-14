@@ -1,0 +1,14 @@
+# Di-generate oleh XcodeGen
+*.xcodeproj/
+
+# Xcode
+xcuserdata/
+DerivedData/
+build/
+*.xcuserstate
+
+# Setelan lokal (Team ID Apple)
+Config/Local.xcconfig
+
+# macOS
+.DS_Store

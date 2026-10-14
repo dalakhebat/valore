@@ -1,0 +1,3 @@
+// Setelan bersama. Team ID Apple (buat signing ke iPhone) taruh di Local.xcconfig,
+// yang tidak di-commit. Contoh isi: DEVELOPMENT_TEAM = ABCDE12345
+#include? "Local.xcconfig"
